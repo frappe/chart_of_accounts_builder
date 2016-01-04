@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include chart_of_accounts_builder *.css
+recursive-include chart_of_accounts_builder *.csv
+recursive-include chart_of_accounts_builder *.html
+recursive-include chart_of_accounts_builder *.ico
+recursive-include chart_of_accounts_builder *.js
+recursive-include chart_of_accounts_builder *.json
+recursive-include chart_of_accounts_builder *.md
+recursive-include chart_of_accounts_builder *.png
+recursive-include chart_of_accounts_builder *.py
+recursive-include chart_of_accounts_builder *.svg
+recursive-include chart_of_accounts_builder *.txt
+recursive-exclude chart_of_accounts_builder *.pyc

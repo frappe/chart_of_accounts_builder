@@ -1,0 +1,21 @@
+
+{% macro render_node(parent) %}
+<ul>
+{% for account in accounts %}
+    {% if (account.parent_account or "") == parent %}
+    <li>
+        {{ account.account_name }}
+        {% if account.is_group %}
+        {{ render_node(account.name) }}
+        {% endif %}
+    </li>
+    {% endif %}
+{% endfor %}
+</ul>
+{% endmacro %}
+
+<!-- title: {{ frappe.form_dict.company }} -->
+
+<h1>{{ frappe.form_dict.company }}</h1>
+
+{{ render_node("") }}
