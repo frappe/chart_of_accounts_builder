@@ -2,20 +2,28 @@
 {% macro render_node(parent) %}
 <ul>
 {% for account in accounts %}
-    {% if (account.parent_account or "") == parent %}
-    <li>
-        {{ account.account_name }}
-        {% if account.is_group %}
-        {{ render_node(account.name) }}
-        {% endif %}
-    </li>
-    {% endif %}
+	{% if (account.parent_account or "") == parent %}
+	<li>
+		<span class="tree-link">{{ account.account_name }}</span>
+		{% if account.is_group %}
+			{{ render_node(account.name) }}
+		{% endif %}
+	</li>
+	{% endif %}
 {% endfor %}
 </ul>
 {% endmacro %}
+
+{% block style %}
+<style>
+    {% include "frappe/public/css/tree.css" %}
+</style>
+{% endblock %}
 
 <!-- title: {{ frappe.form_dict.company }} -->
 
 <h1>{{ frappe.form_dict.company }}</h1>
 
-{{ render_node("") }}
+<span class="tree">
+	{{ render_node("") }}
+</span>
