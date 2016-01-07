@@ -1,6 +1,6 @@
-frappe.provide("erpnext.coa_builder");
+frappe.provide("erpnext.ChartBuilder");
 
-erpnext.coa_builder = Class.extend({
+erpnext.ChartBuilder = Class.extend({
 	init: function() {
 		var me = this;
 		this.toolbar = [
@@ -24,19 +24,22 @@ erpnext.coa_builder = Class.extend({
 			}
 		]
 	},
-	
+
 	bind_events: function() {
-		coa_builder.bind_node_toolbar();
+		this.bind_node_toolbar();
 	},
-	
+
 	bind_node_toolbar: function() {
 		var me = this;
-		
+
 		$(".tree-link").on("click", function() {
+			me.current_account = $(this).attr('data-name');
+
+
 			$('.bold').removeClass('bold');
 			$(this).addClass("bold");
-			
-			
+
+
 			var toolbar = $('<span class="tree-node-toolbar btn-group"></span>').insertAfter(this);
 
 			$.each(me.toolbar, function(i, item) {
@@ -45,23 +48,23 @@ erpnext.coa_builder = Class.extend({
 					.appendTo(toolbar)
 					.click(function() {
 						item.click(me, this);
-						return false; 
+						return false;
 					}
 				);
-				
+
 				link.addClass("hidden-xs");
-				
+
 			})
-			
+
 			if(me.current_toolbar) {
 				$(me.current_toolbar).toggle(false);
 			}
 			me.current_toolbar = toolbar;
 			$(this).toggle(true);
-			
+
 		});
 	},
-	
+
 	make_new: function() {
 		var d = new frappe.ui.Dialog({
 			title:__('New Account'),
@@ -75,26 +78,27 @@ erpnext.coa_builder = Class.extend({
 				},
 				{fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
 					options: ['', 'Bank', 'Cash', 'Warehouse', 'Tax', 'Chargeable'].join('\n'),
-					description: __("Optional. This setting will be used to filter in various transactions.") 				},
-				{fieldtype:'Link', fieldname:'account_currency', label:__('Currency'), options:"Currency",
-					description: __("Optional. Sets company's default currency, if not specified.")
-				}
+					description: __("Optional. This setting will be used to filter in various transactions.")},
 			]
+		})
+		d.set_primary_action('Submit', function() {
+
 		})
 		d.show()
 	},
-	
+
 	rename_account: function() {
-		
+
 	},
-	
+
 	delete_account: function() {
 		console.log(this)
 	}
 })
 
 
-$(document).ready(function() {
-	coa_builder = new erpnext.coa_builder();
-	coa_builder.bind_events();
+frappe.ready(function() {
+	frappe.require("/assets/js/dialog.min.js");
+	erpnext.coa = new erpnext.ChartBuilder();
+	erpnext.coa.bind_events();
 });

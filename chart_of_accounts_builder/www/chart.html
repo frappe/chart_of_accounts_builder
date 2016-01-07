@@ -1,10 +1,15 @@
+<!-- no-cache -->
 
 {% macro render_node(parent) %}
 <ul>
 {% for account in accounts %}
 	{% if (account.parent_account or "") == parent %}
 	<li>
-		<span class="tree-link">{{ account.account_name }}</span>
+		<span class="tree-link"
+            data-name="{{ account.account_name }}"
+            data-account-type="{{ account.account_type }}"
+            is_group="{{ account.is_group }}"
+            root_type="{{ account.root_type }}">{{ account.account_name }}</span>
 		{% if account.is_group %}
 			{{ render_node(account.name) }}
 		{% endif %}
