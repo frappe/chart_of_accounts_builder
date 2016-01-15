@@ -6,10 +6,13 @@
 	{% if (account.parent_account or "") == parent %}
 	<li>
 		<span class="tree-link"
-            data-name="{{ account.account_name }}"
+			data-name="{{ account.name }}"
+            data-account-name="{{ account.account_name }}"
+			data-parent-account="{{ account.parent_account }}"
             data-account-type="{{ account.account_type }}"
-            is_group="{{ account.is_group }}"
-            root_type="{{ account.root_type }}">{{ account.account_name }}</span>
+			data-company="{{ account.company }}"
+            data-is-group="{{ account.is_group }}"
+            data-root-type="{{ account.root_type }}">{{ account.account_name }}</span>
 		{% if account.is_group %}
 			{{ render_node(account.name) }}
 		{% endif %}

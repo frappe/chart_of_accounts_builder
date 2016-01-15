@@ -33,3 +33,18 @@ def setup_charts(delete_existing=True):
 					company.default_currency = "USD"
 					company.insert()
 					frappe.db.commit()
+					
+@frappe.whitelist()
+def update_account(args=None):
+	if not args:
+		args = frappe.local.form_dict
+		args.pop("cmd")
+	if not args.get("account_type"):
+		args.account_type = None
+	if not args.get("is_group"):
+		args.is_group = 0
+		
+	account = frappe.get_doc("Account", args.name)
+	account.update(args)
+	account.flags.ignore_permissions = True
+	account.save()
