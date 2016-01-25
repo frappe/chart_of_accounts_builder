@@ -1,5 +1,13 @@
 <!-- no-cache -->
 
+{% if frappe.user == "Guest" %}
+<div class='alert alert-warning'>Please <a href="/login">login</a> to fork this chart</div>
+{% endif %}
+
+{% if frappe.user != "Guest" %}
+<p><button class="btn btn-default btn-sm pull-right">Fork</button></p>
+{% endif %}
+
 {% macro render_node(parent) %}
 <ul>
 {% for account in accounts %}

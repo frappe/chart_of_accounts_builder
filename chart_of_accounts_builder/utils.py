@@ -21,10 +21,10 @@ def setup_charts(delete_existing=True):
 		for i, chart in enumerate(charts):
 			if (chart != "Standard" or country.name == "United States"):
 				company_name = "{0} - {1}".format(country.name, chart)
-				
+
 				if not frappe.db.exists("Company", company_name):
 					print company_name
-					
+
 					company = frappe.new_doc("Company")
 					company.company_name = company_name
 					company.country = country.name
@@ -33,7 +33,7 @@ def setup_charts(delete_existing=True):
 					company.default_currency = "USD"
 					company.insert()
 					frappe.db.commit()
-					
+
 @frappe.whitelist()
 def update_account(args=None):
 	if not args:
@@ -43,8 +43,22 @@ def update_account(args=None):
 		args.account_type = None
 	if not args.get("is_group"):
 		args.is_group = 0
-		
+
 	account = frappe.get_doc("Account", args.name)
 	account.update(args)
 	account.flags.ignore_permissions = True
 	account.save()
+
+def fork(company, suffix):
+	company = frappe.get_doc("Company", company)
+	fork = frappe.new_doc("Company")
+	fork.country = company.country
+	fork.currency = company.currency
+	fork.chart_of_accounts = company.chart_of_accounts
+	fork.company_name = company.name + ' ' + suffix
+	fork.abbreviate()
+	fork.insert(ignore_permissions=True)
+	return fork.name
+
+def get_home_page(user):
+	return "/home"

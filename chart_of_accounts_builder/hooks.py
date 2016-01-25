@@ -27,6 +27,7 @@ app_license = "MIT"
 
 # application home page (will override Website Settings)
 # home_page = "login"
+get_website_user_home_page = "chart_of_accounts_builder.utils.get_home_page"
 
 # website user home page (by Role)
 # role_home_page = {

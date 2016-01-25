@@ -71,7 +71,7 @@ erpnext.ChartBuilder = Class.extend({
 
 	edit_account: function() {
 		var node = $(this.selected_node);
-		
+
 		var d = new frappe.ui.Dialog({
 			title: __('Edit Properties'),
 			fields: [
@@ -80,13 +80,13 @@ erpnext.ChartBuilder = Class.extend({
 					"default": node.attr("data-account-name")
 				},
 				{
-					fieldtype:'Check', fieldname:'is_group', label:__('Is Group'), 
+					fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
 					default: cint(node.attr("data-is-group")),
 					description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
 				{
 					fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax', 
-						'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed', 
+					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax',
+						'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed',
 						'Expenses Included In Valuation', 'Stock Adjustment'].join('\n'),
 					default: node.attr("data-account-type"),
 					description: __("Optional. This setting will be used to filter in various transactions.")},
@@ -97,13 +97,13 @@ erpnext.ChartBuilder = Class.extend({
 				},
 			]
 		})
-		
+
 		d.set_primary_action(__("Submit"), function() {
 			var btn = this;
 			var v = d.get_values();
 			if(!v) return;
 			v.name = node.attr("data-name")
-			
+
 			return frappe.call({
 				args: v,
 				method: 'chart_of_accounts_builder.utils.update_account',
@@ -113,24 +113,24 @@ erpnext.ChartBuilder = Class.extend({
 				}
 			});
 		});
-		
+
 		$(d.fields_dict.root_type.wrapper).toggle(node.attr("data-parent-account")=="None");
-		
+
 		var field = d.get_field("account_name");
 		field.df.read_only = 1;
 		field.refresh();
-		
+
 		d.show();
 	},
 
 	make_new: function() {
 		var node = $(this.selected_node);
-		
+
 		if(!(node && cint(node.attr("data-is-group")))) {
 			frappe.msgprint(__("Select a group node first."));
 			return;
 		}
-		
+
 		var d = new frappe.ui.Dialog({
 			title:__('New Account'),
 			fields: [
@@ -146,7 +146,7 @@ erpnext.ChartBuilder = Class.extend({
 					description: __("Optional. This setting will be used to filter in various transactions.")},
 			]
 		})
-		
+
 		d.set_primary_action(__("Create"), function() {
 			var btn = this;
 			var v = d.get_values();
@@ -164,25 +164,26 @@ erpnext.ChartBuilder = Class.extend({
 				}
 			});
 		});
-		
+
 		d.show()
 	},
 
 	rename_account: function() {
 		var selected_account = $(this.selected_node).attr("data-name");
-		
+
 		var d = new frappe.ui.Dialog({
 			title:__('Rename Account'),
 			fields: [
-				{fieldtype:'Data', fieldname:'new_account_name', label:__('New Account Name'), reqd:true}
+				{fieldtype:'Data', fieldname:'new_account_name',
+				label:__('New Account Name'), reqd:true, default: selected_account}
 			]
-		})
-		
+		});
+
 		d.set_primary_action(__("Rename"), function() {
 			var btn = this;
 			var v = d.get_values();
 			if(!v) return;
-			
+
 			return frappe.call({
 				method:"frappe.model.rename_doc.rename_doc",
 				args: {
@@ -196,16 +197,16 @@ erpnext.ChartBuilder = Class.extend({
 						d.hide();
 						window.location.reload();
 					}
-				} 
+				}
 			});
 		});
-		
+
 		d.show()
 	},
 
 	delete_account: function() {
 		var node = $(this.selected_node);
-		
+
 		return frappe.call({
 			method: 'frappe.client.delete',
 			args: {
