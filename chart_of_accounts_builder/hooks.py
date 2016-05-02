@@ -29,6 +29,13 @@ app_license = "MIT"
 # home_page = "login"
 get_website_user_home_page = "chart_of_accounts_builder.utils.get_home_page"
 
+website_context = {
+	"brand_html": 'ERPNext Charts',
+	"top_bar_items": [
+		{"label": "Help", "url": "/help", "right":1},
+	],
+}
+
 # website user home page (by Role)
 # role_home_page = {
 #	"Role": "home_page"
