@@ -5,4 +5,4 @@ def get_context(context):
 		fields=["account_name", "name", "is_group", "parent_account", 
 		"account_type", "company", "root_type"], order_by="lft asc")
 
-	context.parents = [{"name": "home", "title": "All Charts"}]
+	context.parents = [{"name": "all_charts", "title": "All Charts"}]

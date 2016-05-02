@@ -31,7 +31,15 @@ erpnext.ChartBuilder = Class.extend({
 		]
 	},
 
-	bind_events: function() {
+	bind_events: function() {		
+		if(cint(get_url_arg("submitted"))) return;
+
+		if(!cint(get_url_arg("forked"))) {
+			this.fork_charts();
+		} else {
+			this.submit_charts();
+		}
+		
 		this.bind_node_toolbar();
 	},
 
@@ -218,6 +226,64 @@ erpnext.ChartBuilder = Class.extend({
 					window.location.reload();
 				}
 			}
+		})
+	},
+	
+	fork_charts: function() {
+		var company = get_url_arg("company");
+		$(".fork-button").on("click", function() {
+			var d = new frappe.ui.Dialog({
+				title:__('Fork Chart'),
+				fields: [
+					{
+						fieldtype:'Data', fieldname:'new_company_name',
+						label:__('New Company Name'), reqd:true
+					},
+					{
+						fieldtype:'Data', fieldname:'new_company_abbr',
+						label:__('New Company Abbreviation'), reqd:true
+					},
+				]
+			});
+
+			d.set_primary_action(__("Fork"), function() {
+				var btn = this;
+				var v = d.get_values();
+				if(!v) return;
+				
+				return frappe.call({
+					method: 'chart_of_accounts_builder.utils.fork',
+					args: {
+						reference_company: company,
+						new_company: v.new_company_name,
+						new_company_abbr: v.new_company_abbr
+					},
+					callback: function(r, rt) {
+						if(!r.exc) {
+							window.location.href = "/chart?company=" + v.new_company_name 
+								+ "&forked=1&submitted=0"
+						}
+					}
+				})
+			})
+			d.show()
+		})
+	},
+	
+	submit_charts: function() {
+		var company = get_url_arg("company");
+		$(".submit-chart").on("click", function() {
+			return frappe.call({
+				method: 'chart_of_accounts_builder.utils.submit_chart',
+				args: {
+					company: company
+				},
+				callback: function(r, rt) {
+					if(!r.exc) {
+						window.location.href = "/all_charts"
+					}
+				}
+			})
 		})
 	}
 })

@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
 import frappe
-
+from frappe import _
+from frappe.utils import cint
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import get_charts_for_country
 
 def setup_charts(delete_existing=True):
@@ -41,24 +42,75 @@ def update_account(args=None):
 		args.pop("cmd")
 	if not args.get("account_type"):
 		args.account_type = None
-	if not args.get("is_group"):
-		args.is_group = 0
-
+	args.is_group = cint(args.is_group)
 	account = frappe.get_doc("Account", args.name)
 	account.update(args)
 	account.flags.ignore_permissions = True
 	account.save()
 
-def fork(company, suffix):
-	company = frappe.get_doc("Company", company)
+@frappe.whitelist()
+def fork(reference_company, new_company, new_company_abbr):
+	company = frappe.get_doc("Company", reference_company)
 	fork = frappe.new_doc("Company")
 	fork.country = company.country
-	fork.currency = company.currency
+	fork.default_currency = company.default_currency
 	fork.chart_of_accounts = company.chart_of_accounts
-	fork.company_name = company.name + ' ' + suffix
-	fork.abbreviate()
+	fork.company_name = new_company
+	fork.abbr = new_company_abbr
+	fork.forked = 1
 	fork.insert(ignore_permissions=True)
-	return fork.name
+	if frappe.message_log:
+		frappe.message_log.pop()
+		
+@frappe.whitelist()
+def submit_chart(company):
+	validate_roots(company)
+	validate_account_types(company)
+	validate_accounts(company)
+	
+	frappe.db.set_value("Company", company, "submitted", 1)
+	
+	notify_frappe_team(company)
+	
+def notify_frappe_team(company):
+	subject = "New Chart of Accounts {chart_name} submitted".format(chart_name=company)
+	message = """
+		New Chart of Accounts: {chart_name}
+		Country: {country}
+		Submitted By: {user}
+	""".format(chart_name=company, 
+		country=frappe.db.get_value("Company", company, "country"), 
+		user=frappe.session.user)
+		
+	frappe.sendmail(recipients="developers@erpnext.com", subject=subject, message=message)
+	
+def validate_roots(company):
+	roots = frappe.db.sql("""select name, root_type from tabAccount 
+		where company=%s and ifnull(parent_account, '') = ''""", company, as_dict=1)
+	if len(roots) < 4:
+		frappe.throw(_("Number of root accounts cannot be less than 4"))
+		
+	for account in roots:
+		if account.root_type not in ("Asset", "Liability", "Expense", "Income", "Equity"):
+			frappe.throw(_("Root account type must be one of Asset, Liability, Income, Expense and Equity"))
+			
+def validate_account_types(company):
+	account_types = ["Cost of Goods Sold", "Depreciation", "Expenses Included In Valuation", 
+		"Fixed Asset", "Payable", "Receivable", "Stock Adjustment", "Stock Received But Not Billed"]
+	
+	for account_type in account_types:
+		if not frappe.db.get_value("Account", 
+			{"company": company, "account_type": account_type, "is_group": 0}):
+			
+			frappe.throw(_("Please identify / create {0} account").format(account_type))
+			
+	if not frappe.db.get_value("Account", {"company": company, "account_type": "Stock", "is_group": 1}):
+		frappe.throw(_("Please identify / create account group for Stock under Asset"))
+		
+def validate_accounts(company):
+	for account in frappe.db.sql("""select name from tabAccount 
+		where company=%s and ifnull(parent_account, '') != ''""", company, as_dict=1):
+			frappe.get_doc("Account", account.name).validate()
 
 def get_home_page(user):
-	return "/home"
+	return "/all_charts"

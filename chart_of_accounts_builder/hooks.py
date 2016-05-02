@@ -109,3 +109,4 @@ get_website_user_home_page = "chart_of_accounts_builder.utils.get_home_page"
 # 	"frappe.desk.doctype.event.event.get_events": "chart_of_accounts_builder.event.get_events"
 # }
 
+fixtures = ["Custom Field"]
