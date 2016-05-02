@@ -1,14 +1,14 @@
 <!-- no-cache -->
 
 {% if frappe.user == "Guest" %}
-<div class='alert alert-warning'>Please <a href="/login">login</a> to fork this chart</div>
+<div class='alert alert-warning'>Please <a href="/login">login</a> to fork and edit this chart</div>
 {% endif %}
 
 {% if frappe.user != "Guest" %}
-	{% if frappe.form_dict.forked == "0" %}
-		<p><button class="btn btn-default btn-sm pull-right fork-button">Fork</button></p>
-	{% elif frappe.form_dict.submitted == "0" %}
-		<p><button class="btn btn-default btn-sm pull-right submit-chart">Submit</button></p>
+	<p><button class="btn btn-default btn-sm pull-right fork-button">Fork</button></p>
+	{% if frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "0" %}
+		<p><button class="btn btn-primary btn-accept btn-sm pull-right submit-chart" 
+				style="margin-right: 5px;">Submit</button></p>
 	{% endif %}
 {% endif %}
 

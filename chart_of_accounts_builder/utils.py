@@ -2,7 +2,8 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
-from frappe.utils import cint
+from frappe.utils import cint, random_string
+from frappe.model.naming import append_number_if_name_exists
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import get_charts_for_country
 
 def setup_charts(delete_existing=True):
@@ -49,18 +50,28 @@ def update_account(args=None):
 	account.save()
 
 @frappe.whitelist()
-def fork(reference_company, new_company, new_company_abbr):
-	company = frappe.get_doc("Company", reference_company)
+def fork(company):
+	ref_company = frappe.get_doc("Company", company)
+	new_company_name = ref_company.name + " - " + frappe.session.user
+	new_company_abbr = random_string(3)
+	
 	fork = frappe.new_doc("Company")
-	fork.country = company.country
-	fork.default_currency = company.default_currency
-	fork.chart_of_accounts = company.chart_of_accounts
-	fork.company_name = new_company
+	fork.country = ref_company.country
+	fork.default_currency = ref_company.default_currency
+	fork.chart_of_accounts = ref_company.chart_of_accounts
+	fork.name = new_company_name
 	fork.abbr = new_company_abbr
 	fork.forked = 1
+	
+	fork = append_number_if_name_exists(fork)
+	fork.company_name = fork.name
+	
 	fork.insert(ignore_permissions=True)
+	
 	if frappe.message_log:
-		frappe.message_log.pop()
+		frappe.message_log = []
+	
+	return fork.name
 
 @frappe.whitelist()
 def submit_chart(company):
