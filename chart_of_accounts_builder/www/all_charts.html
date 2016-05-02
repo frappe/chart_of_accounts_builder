@@ -1,3 +1,19 @@
+<style>
+.page-head { display: none; }
+</style>
+
+<p>
+	<form method="get" action="/">
+		<input type="text" class="form-control" name="search" placeholder="Search" />
+	</form>
+</p>
+
+{% if frappe.form_dict.search %}
+<p>Filtered by "{{ frappe.form_dict.search }}". <a href="/">Clear</a></p>
+{% endif %}
+
+<div class="padding"></div>
+
 {% for chart in charts %}
 <a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
 	<h4>{{ chart.name }}</h4>
