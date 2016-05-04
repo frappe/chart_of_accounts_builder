@@ -15,7 +15,12 @@
 <div class="padding"></div>
 
 {% for chart in charts %}
-<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
-	<h4>{{ chart.name }}</h4>
-</a>
+	<div class="dashboard-list-item">
+		<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
+			<h4>{{ chart.name }}</h4>
+		</a>
+		<p class="small text-muted" style="margin-top: -10px">
+			Submitted by {{ chart.submitted_by }}. {{ chart.stars }} Stars
+		</p>
+	</div>
 {% endfor %}

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-import frappe
+import frappe, json
 from frappe import _
 from frappe.utils import cint, random_string
 from frappe.model.naming import append_number_if_name_exists
@@ -10,12 +10,12 @@ def setup_charts(delete_existing=True):
 	frappe.local.flags.allow_unverified_charts = True
 
 	# delete
-	# if delete_existing:
-	# 	for company in frappe.get_all("Company"):
-	# 		if company.name not in ("Wind Power LLC", "Test Company"):
-	# 			print "deleting {0}".format(company.name)
-	# 			frappe.delete_doc("Company", company.name)
-	# 			frappe.db.commit()
+	if delete_existing:
+		for company in frappe.get_all("Company"):
+			if company.name not in ("Wind Power LLC", "Test Company"):
+				print "deleting {0}".format(company.name)
+				frappe.delete_doc("Company", company.name)
+				frappe.db.commit()
 
 	print "-"*40
 	for country in frappe.get_all("Country", fields=["name", "code"]):
@@ -52,7 +52,8 @@ def update_account(args=None):
 @frappe.whitelist()
 def fork(company):
 	ref_company = frappe.get_doc("Company", company)
-	new_company_name = ref_company.name + " - " + frappe.session.user
+	new_company_name = ref_company.name + " - " + \
+		frappe.db.get_value("User", frappe.session.user, "first_name")
 	new_company_abbr = random_string(3)
 	
 	fork = frappe.new_doc("Company")
@@ -122,6 +123,25 @@ def validate_accounts(company):
 	for account in frappe.db.sql("""select name from tabAccount
 		where company=%s and ifnull(parent_account, '') != ''""", company, as_dict=1):
 			frappe.get_doc("Account", account.name).validate()
+
+@frappe.whitelist()			
+def add_star(company):
+	stars_given_by = frappe.db.get_value("Company", company, "stars_given_by")
+	
+	if isinstance(stars_given_by, basestring):
+		stars_given_by = json.loads(stars_given_by)
+		
+	if not stars_given_by:
+		stars_given_by = []
+		
+	if frappe.session.user not in stars_given_by:
+		stars_given_by.append(frappe.session.user)
+		
+	stars = len(stars_given_by)
+	frappe.db.set_value("Company", company, "stars", stars)
+	frappe.db.set_value("Company", company, "stars_given_by", json.dumps(stars_given_by))
+
+	return stars
 
 def get_home_page(user):
 	return "/all_charts"

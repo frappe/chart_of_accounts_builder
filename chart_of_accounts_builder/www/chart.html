@@ -6,10 +6,23 @@
 
 {% if frappe.user != "Guest" %}
 	{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
-		<p><button class="btn btn-default btn-sm pull-right fork-button">Fork</button></p>
+		<button class="btn btn-default btn-sm pull-right star-button" 
+			style="margin-left: 5px; margin-top: 4px">
+				<span class="octicon octicon-star"></span>
+				<span class="text">Star</span>
+				<span class="star-count">{{ stars }}</span>
+		</button>
+		<button class="btn btn-default btn-sm pull-right fork-button" style="margin-top: 4px">
+			<span class="octicon octicon-repo-forked"></span>
+			<span class="text">Fork</span>
+		</button>
+
 	{% elif frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "0" %}
 		<p><button class="btn btn-primary btn-accept btn-sm pull-right submit-chart" 
-				style="margin-right: 5px;">Submit</button></p>
+			style="margin-right: 5px;">
+			<span class="octicon octicon-check"></span>
+			<span class="text">Submit</span>
+		</button></p>
 	{% endif %}
 {% endif %}
 
@@ -46,7 +59,7 @@
 
 <!-- title: {{ frappe.form_dict.company }} -->
 
-<h1>{{ frappe.form_dict.company }}</h1>
+<h1 style="margin-top: 10px">{{ frappe.form_dict.company }}</h1>
 
 <hr>
 
@@ -54,7 +67,10 @@
 	{{ render_node("") }}
 	<ul><li>
 		<br>
-		<p><button class="btn btn-default btn-sm add-root-button"> Add root account </button></p>
+		<p><button class="btn btn-default btn-sm add-root-button">
+			<span class="octicon octicon-plus"></span>
+			<span class="text">Add root account</span>
+		</button></p>
 	</li></ul>
 	
 </div>

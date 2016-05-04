@@ -31,16 +31,18 @@ erpnext.ChartBuilder = Class.extend({
 		]
 	},
 
-	bind_events: function() {		
-		if(cint(get_url_arg("submitted"))) return;
-
-		if(!cint(get_url_arg("forked"))) {
+	bind_events: function() {
+		if( !cint(get_url_arg("forked")) || cint(get_url_arg("submitted")) ) {
 			this.fork_charts();
-		} else {
+		}
+		
+		if ( cint(get_url_arg("forked")) && !cint(get_url_arg("submitted")) ) {
 			this.bind_node_toolbar();
 			this.add_root();
 			this.submit_charts();
 		}
+		
+		this.add_star();
 	},
 
 	bind_node_toolbar: function() {
@@ -123,6 +125,7 @@ erpnext.ChartBuilder = Class.extend({
 			return frappe.call({
 				args: v,
 				method: 'chart_of_accounts_builder.utils.update_account',
+				freeze: true,
 				callback: function(r) {
 					d.hide();
 					window.location.reload();
@@ -187,6 +190,7 @@ erpnext.ChartBuilder = Class.extend({
 					old: selected_account_id,
 					"new": v.new_account_name
 				},
+				freeze: true,
 				btn: d.get_primary_btn(),
 				callback: function(r,rt) {
 					if(!r.exc) {
@@ -209,6 +213,7 @@ erpnext.ChartBuilder = Class.extend({
 				doctype: "Account",
 				name: node.attr("data-name")
 			},
+			freeze: true,
 			callback: function(r, rt) {
 				if(!r.exc) {
 					window.location.reload();
@@ -270,6 +275,7 @@ erpnext.ChartBuilder = Class.extend({
 			return frappe.call({
 				args: v,
 				method: 'erpnext.accounts.utils.add_ac',
+				freeze: true,
 				callback: function(r) {
 					d.hide();
 					window.location.reload();
@@ -296,6 +302,7 @@ erpnext.ChartBuilder = Class.extend({
 				args: {
 					company: company
 				},
+				freeze: true,
 				callback: function(r, rt) {
 					if(!r.exc && r.message) {
 						window.location.href = "/chart?company=" + r.message + "&forked=1&submitted=0"
@@ -313,9 +320,28 @@ erpnext.ChartBuilder = Class.extend({
 				args: {
 					company: company
 				},
+				freeze: true,
 				callback: function(r, rt) {
 					if(!r.exc) {
 						window.location.href = "/all_charts"
+					}
+				}
+			})
+		})
+	},
+	
+	add_star: function() {
+		var company = get_url_arg("company");
+		$(".star-button").on("click", function() {
+			return frappe.call({
+				method: 'chart_of_accounts_builder.utils.add_star',
+				args: {
+					company: company
+				},
+				freeze: true,
+				callback: function(r, rt) {
+					if(!r.exc && r.message) {
+						$(".star-count").html(r.message);
 					}
 				}
 			})
