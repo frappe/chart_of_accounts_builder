@@ -5,8 +5,9 @@
 {% endif %}
 
 {% if frappe.user != "Guest" %}
-	<p><button class="btn btn-default btn-sm pull-right fork-button">Fork</button></p>
-	{% if frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "0" %}
+	{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
+		<p><button class="btn btn-default btn-sm pull-right fork-button">Fork</button></p>
+	{% elif frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "0" %}
 		<p><button class="btn btn-primary btn-accept btn-sm pull-right submit-chart" 
 				style="margin-right: 5px;">Submit</button></p>
 	{% endif %}
@@ -24,7 +25,10 @@
             data-account-type="{{ account.account_type }}"
 			data-company="{{ account.company }}"
             data-is-group="{{ account.is_group }}"
-            data-root-type="{{ account.root_type }}">{{ account.account_name }}</span>
+            data-root-type="{{ account.root_type }}"
+			data-tax-rate="{{ account.tax_rate }}">
+				{{ account.account_name }}
+		</span>
 		{% if account.is_group %}
 			{{ render_node(account.name) }}
 		{% endif %}

@@ -92,9 +92,10 @@ erpnext.ChartBuilder = Class.extend({
 					description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
 				{
 					fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax',
-						'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed',
-						'Expenses Included In Valuation', 'Stock Adjustment'].join('\n'),
+					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax', 
+						'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed', 
+						'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset', 
+						'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
 					default: node.attr("data-account-type"),
 					description: __("Optional. This setting will be used to filter in various transactions.")},
 				{
@@ -102,6 +103,10 @@ erpnext.ChartBuilder = Class.extend({
 					options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n'),
 					default: node.attr("data-root-type")
 				},
+				{ 
+					fieldtype:'Data', fieldname:'tax_rate', label:__('Tax Rate'), 
+					default: node.attr("data-tax-rate")
+				}
 			]
 		})
 
@@ -120,9 +125,18 @@ erpnext.ChartBuilder = Class.extend({
 				}
 			});
 		});
+		
+		//show root_type if root and tax_rate if account_type is tax
+		var fd = d.fields_dict;
+		
+		$(fd.root_type.wrapper).toggle(node.attr("data-parent-account")=="None");
+		$(fd.tax_rate.wrapper).toggle(fd.account_type.get_value()==='Tax');
+		
+		$(fd.account_type.input).change(function() {
+			$(fd.tax_rate.wrapper).toggle(fd.account_type.get_value()==='Tax');
+		})
 
-		$(d.fields_dict.root_type.wrapper).toggle(node.attr("data-parent-account")=="None");
-
+		// make account name field non-editable
 		var field = d.get_field("account_name");
 		field.df.read_only = 1;
 		field.refresh();
@@ -141,19 +155,31 @@ erpnext.ChartBuilder = Class.extend({
 		var d = new frappe.ui.Dialog({
 			title:__('New Account'),
 			fields: [
-				{fieldtype:'Data', fieldname:'account_name', label:__('New Account Name'), reqd:true,
+				{
+					fieldtype:'Data', fieldname:'account_name', label:__('New Account Name'), reqd:true,
 					description: __("Name of new Account. Note: Please don't create accounts for Customers and Suppliers")},
-				{fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
+				{
+					fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
 					description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
-				// {fieldtype:'Select', fieldname:'root_type', label:__('Root Type'),
-				// 	options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n'),
-				// },
-				{fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax', 'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed', 'Expenses Included In Valuation', 'Stock Adjustment'].join('\n'),
+				{
+					fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
+					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax', 
+						'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed', 
+						'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset', 
+						'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
 					description: __("Optional. This setting will be used to filter in various transactions.")},
+				{ fieldtype:'Data', fieldname:'tax_rate', label:__('Tax Rate') }
 			]
 		})
+		
+		//show tax rate if account type is tax
+		var fd = d.fields_dict;	
+		$(fd.tax_rate.wrapper).toggle(false);
+		$(fd.account_type.input).change(function() {
+			$(fd.tax_rate.wrapper).toggle(fd.account_type.get_value()==='Tax');
+		})
 
+		// bind primary action
 		d.set_primary_action(__("Create"), function() {
 			var btn = this;
 			var v = d.get_values();
