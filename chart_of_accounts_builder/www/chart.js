@@ -202,13 +202,14 @@ erpnext.ChartBuilder = Class.extend({
 	},
 
 	rename_account: function() {
-		var selected_account = $(this.selected_node).attr("data-name");
+		var selected_account_id = $(this.selected_node).attr("data-name");
+		var selected_account_name = $(this.selected_node).attr("data-account-name");
 
 		var d = new frappe.ui.Dialog({
 			title:__('Rename Account'),
 			fields: [
 				{fieldtype:'Data', fieldname:'new_account_name',
-				label:__('New Account Name'), reqd:true, default: selected_account}
+				label:__('New Account Name'), reqd:true, default: selected_account_name}
 			]
 		});
 
@@ -221,7 +222,7 @@ erpnext.ChartBuilder = Class.extend({
 				method:"frappe.model.rename_doc.rename_doc",
 				args: {
 					doctype: "Account",
-					old: selected_account,
+					old: selected_account_id,
 					"new": v.new_account_name
 				},
 				btn: d.get_primary_btn(),
