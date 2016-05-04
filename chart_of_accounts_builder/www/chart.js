@@ -13,7 +13,7 @@ erpnext.ChartBuilder = Class.extend({
 			{
 				label: __("Add Child"),
 				click: function() {
-					me.make_new()
+					me.add_child();
 				},
 			},
 			{
@@ -38,6 +38,7 @@ erpnext.ChartBuilder = Class.extend({
 			this.fork_charts();
 		} else {
 			this.bind_node_toolbar();
+			this.add_root();
 			this.submit_charts();
 		}
 	},
@@ -54,6 +55,9 @@ erpnext.ChartBuilder = Class.extend({
 			var toolbar = $('<span class="tree-node-toolbar btn-group"></span>').insertAfter(this);
 
 			$.each(me.toolbar, function(i, item) {
+				if(!cint($(me.selected_node).attr("data-is-group")) && item.label=="Add Child") {
+					return;
+				}
 				var link = $("<button class='btn btn-default btn-xs'></button>")
 					.html(item.label)
 					.appendTo(toolbar)
@@ -129,7 +133,11 @@ erpnext.ChartBuilder = Class.extend({
 		//show root_type if root and tax_rate if account_type is tax
 		var fd = d.fields_dict;
 		
-		$(fd.root_type.wrapper).toggle(node.attr("data-parent-account")=="None");
+		var is_root = node.attr("data-parent-account")=="None" ? true : false;
+		$(fd.root_type.wrapper).toggle(is_root);
+		$(fd.is_group.wrapper).toggle(!is_root);
+		$(fd.account_type.wrapper).toggle(!is_root);
+
 		$(fd.tax_rate.wrapper).toggle(fd.account_type.get_value()==='Tax');
 		
 		$(fd.account_type.input).change(function() {
@@ -144,7 +152,7 @@ erpnext.ChartBuilder = Class.extend({
 		d.show();
 	},
 
-	make_new: function() {
+	add_child: function() {
 		var node = $(this.selected_node);
 
 		if(!(node && cint(node.attr("data-is-group")))) {
@@ -152,53 +160,7 @@ erpnext.ChartBuilder = Class.extend({
 			return;
 		}
 
-		var d = new frappe.ui.Dialog({
-			title:__('New Account'),
-			fields: [
-				{
-					fieldtype:'Data', fieldname:'account_name', label:__('New Account Name'), reqd:true,
-					description: __("Name of new Account. Note: Please don't create accounts for Customers and Suppliers")},
-				{
-					fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
-					description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
-				{
-					fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax', 
-						'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed', 
-						'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset', 
-						'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
-					description: __("Optional. This setting will be used to filter in various transactions.")},
-				{ fieldtype:'Data', fieldname:'tax_rate', label:__('Tax Rate') }
-			]
-		})
-		
-		//show tax rate if account type is tax
-		var fd = d.fields_dict;	
-		$(fd.tax_rate.wrapper).toggle(false);
-		$(fd.account_type.input).change(function() {
-			$(fd.tax_rate.wrapper).toggle(fd.account_type.get_value()==='Tax');
-		})
-
-		// bind primary action
-		d.set_primary_action(__("Create"), function() {
-			var btn = this;
-			var v = d.get_values();
-			if(!v) return;
-
-			v.parent_account = node.attr('data-name');
-			v.company = node.attr('data-company');
-
-			return frappe.call({
-				args: v,
-				method: 'erpnext.accounts.utils.add_ac',
-				callback: function(r) {
-					d.hide();
-					window.location.reload();
-				}
-			});
-		});
-
-		d.show()
+		this.make_new_account(node.attr('data-name'), node.attr('data-company'))
 	},
 
 	rename_account: function() {
@@ -252,6 +214,77 @@ erpnext.ChartBuilder = Class.extend({
 					window.location.reload();
 				}
 			}
+		})
+	},
+	
+	make_new_account: function(parent_account, company) {
+		var d = new frappe.ui.Dialog({
+			title:__('New Account'),
+			fields: [
+				{
+					fieldtype:'Data', fieldname:'account_name', label:__('New Account Name'), reqd:true,
+					description: __("Name of new Account. Note: Please don't create accounts for Customers and Suppliers")},
+				{
+					fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
+					description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
+				{
+					fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
+					options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax', 
+						'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed', 
+						'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset', 
+						'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
+					description: __("Optional. This setting will be used to filter in various transactions.")},
+				{ fieldtype:'Data', fieldname:'tax_rate', label:__('Tax Rate') },
+				{
+					fieldtype:'Select', fieldname:'root_type', label:__('Root Type'),
+					options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n')
+				},
+			]
+		})
+		
+		var fd = d.fields_dict;	
+		
+		//show tax rate if account type is tax
+		$(fd.tax_rate.wrapper).toggle(false);
+		$(fd.account_type.input).change(function() {
+			$(fd.tax_rate.wrapper).toggle(fd.account_type.get_value()==='Tax');
+		})
+		
+		// In case of root, show root type and hide account_type, is_group
+		var is_root = parent_account==null ? true : false;
+		$(fd.is_group.wrapper).toggle(!is_root);
+		$(fd.account_type.wrapper).toggle(!is_root);
+		$(fd.root_type.wrapper).toggle(is_root);
+
+		// bind primary action
+		d.set_primary_action(__("Create"), function() {
+			var btn = this;
+			var v = d.get_values();
+			if(!v) return;
+
+			v.parent_account = null;
+			v.company = company;
+			v.is_root = is_root;
+			v.is_group = is_root ? 1 : v.is_group;
+			
+			return frappe.call({
+				args: v,
+				method: 'erpnext.accounts.utils.add_ac',
+				callback: function(r) {
+					d.hide();
+					window.location.reload();
+				}
+			});
+		});
+
+		d.show()
+	},
+	
+	add_root: function() {
+		var me = this;
+		var company = get_url_arg("company");
+		$(".add-root-button").on("click", function() {
+			me.make_new_account(null, company);
 		})
 	},
 	
