@@ -1,33 +1,9 @@
 <!-- no-cache -->
-
-{% if frappe.user == "Guest" %}
-<div class='alert alert-warning'>Please <a href="/login">login</a> to fork and edit this chart</div>
-{% endif %}
-
-{% if frappe.user != "Guest" %}
-	{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
-		<button class="btn btn-default btn-sm pull-right star-button" 
-			style="margin-left: 5px; margin-top: 4px">
-				<span class="octicon octicon-star"></span>
-				<span class="text">Star</span>
-				<span class="star-count">{{ stars }}</span>
-		</button>
-		<button class="btn btn-default btn-sm pull-right fork-button" style="margin-top: 4px">
-			<span class="octicon octicon-repo-forked"></span>
-			<span class="text">Fork</span>
-		</button>
-
-	{% elif frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "0" %}
-		<p><button class="btn btn-primary btn-accept btn-sm pull-right submit-chart" 
-			style="margin-right: 5px;">
-			<span class="octicon octicon-check"></span>
-			<span class="text">Submit</span>
-		</button></p>
-	{% endif %}
-{% endif %}
+<!-- no-header -->
+<!-- title: {{ frappe.form_dict.company }} -->
 
 {% macro render_node(parent) %}
-<ul>
+<ul class="tree">
 {% for account in accounts %}
 	{% if (account.parent_account or "") == parent %}
 	<li>
@@ -39,9 +15,14 @@
 			data-company="{{ account.company }}"
             data-is-group="{{ account.is_group }}"
             data-root-type="{{ account.root_type }}"
-			data-tax-rate="{{ account.tax_rate }}">
-				{{ account.account_name }}
-		</span>
+			data-tax-rate="{{ account.tax_rate }}">{{ account.account_name }}</span>
+		
+		{% if account.account_type %}
+			<span class="label label-warning account-tag"> {{ account.account_type }} </span>
+		{% endif %}
+		
+		<span class="tree-node-toolbar-wrapper"></span>
+		
 		{% if account.is_group %}
 			{{ render_node(account.name) }}
 		{% endif %}
@@ -51,26 +32,53 @@
 </ul>
 {% endmacro %}
 
-{% block style %}
-<style>
-    {% include "frappe/public/css/tree.css" %}
-</style>
-{% endblock %}
 
-<!-- title: {{ frappe.form_dict.company }} -->
 
-<h1 style="margin-top: 10px">{{ frappe.form_dict.company }}</h1>
+{% if frappe.user == "Guest" %}
+<div class='alert alert-warning'>Please <a href="/login">login</a> to fork and edit this chart</div>
+{% endif %}
 
-<hr>
+<div>
+	{% if frappe.user != "Guest" %}
+		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
+		<div class='alert alert-warning'>Please fork to edit this chart</div>
+		{% endif %}
+		
+		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
+			<button class="btn btn-default pull-right star-button" 
+				style="margin-left: 5px;">
+					<span class="octicon octicon-star"></span>
+					<span class="text">Star</span>
+					<span class="star-count">{{ stars }}</span>
+			</button>
+			<button class="btn btn-default pull-right fork-button">
+				<span class="octicon octicon-repo-forked"></span>
+				<span class="text">Fork</span>
+			</button>
 
-<div class="tree" style="margin-left: -55px;">
-	{{ render_node("") }}
-	<ul><li>
-		<br>
-		<p><button class="btn btn-default btn-sm add-root-button">
-			<span class="octicon octicon-plus"></span>
-			<span class="text">Add root account</span>
-		</button></p>
-	</li></ul>
-	
+		{% elif frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "0" %}
+			<button class="btn btn-primary btn-accept pull-right submit-chart">
+				<span class="octicon octicon-check"></span>
+				<span class="text">Submit</span>
+			</button>
+		{% endif %}
+	{% endif %}
+
+	<h2>{{ frappe.form_dict.company }}</h2>
 </div>
+
+<hr style="margin-left: 0px; margin-right: 0px;">
+
+<div>
+	{{ render_node("") }}
+	<ul class="tree tree-add-root">
+		<li>
+			<button class="btn btn-default add-root-button">
+				<span class="octicon octicon-plus"></span>
+				<span>Add Root Account</span>
+			</button>
+		</li>
+	</ul>
+</div>
+
+{% include 'templates/includes/comments/comments.html' %}

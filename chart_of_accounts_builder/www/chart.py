@@ -1,4 +1,5 @@
 import frappe
+from frappe.website.utils import get_comment_list
 
 def get_context(context):
 	context.accounts = frappe.get_all("Account", filters={"company": frappe.form_dict.company},
@@ -6,5 +7,6 @@ def get_context(context):
 			"account_type", "company", "root_type", "tax_rate"], order_by="lft asc")
 	
 	context.stars = frappe.db.get_value("Company", frappe.form_dict.company, "stars")
-
-	context.parents = [{"name": "all_charts", "title": "All Charts"}]
+	context.comment_list = get_comment_list("Company", frappe.form_dict.company)
+	context.reference_doctype = "Company"
+	context.reference_name = frappe.form_dict.company

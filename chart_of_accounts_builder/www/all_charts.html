@@ -1,26 +1,69 @@
-<style>
-.page-head { display: none; }
-</style>
+<!-- jinja -->
+<!-- no-sidebar -->
+<!-- no-header -->
+<!-- no-breadcrumbs -->
+<!-- no-cache -->
+<!-- title: ERPNext Charts -->
 
-<p>
-	<form method="get" action="/">
-		<input type="text" class="form-control" name="search" placeholder="Search" />
-	</form>
-</p>
+{% macro show_charts(label, charts, show_user=True) %}
+	{% if charts %}
+	<div class=" row col-sm-12">
+		<h2> {{ label }}</h2>
+		<hr class="chart-list-header">
 
-{% if frappe.form_dict.search %}
-<p>Filtered by "{{ frappe.form_dict.search }}". <a href="/">Clear</a></p>
-{% endif %}
-
-<div class="padding"></div>
-
-{% for chart in charts %}
-	<div class="dashboard-list-item">
-		<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
-			<h4>{{ chart.name }}</h4>
-		</a>
-		<p class="small text-muted" style="margin-top: -10px">
-			Submitted by {{ chart.submitted_by }}. {{ chart.stars }} Stars
-		</p>
+		{% for chart in charts %}	
+			<div class="chart-list-item col-sm-12">
+				<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
+					<div class="pull-right text-muted small" style="margin-top:8px">
+						<span class="octicon octicon-star"></span>
+						<span class="star-count">{{ chart.stars }}</span>
+					</div>
+					<div>
+						<h4 class="chart-name">{{ chart.name }}</h4>
+						<!-- <div class="small text-muted chart-list-item-desc"> {{chart.name}}</div> -->
+						{% if show_user %}
+							<div class="small text-muted chart-list-item-desc">
+									Submitted by {{ chart.submitted_by }}
+							</div>
+						{% endif %}
+					</div>
+				</a>
+			</div>
+		{% endfor %}
 	</div>
-{% endfor %}
+{% endif %}
+{% endmacro %}
+
+
+<div class="row hero" style="padding-bottom: 90px;">
+    <div class="col-sm-12">
+        <img class="erp-hero" src="/assets/frappe_theme/img/translator.svg" style="width: 200px; margin-bottom: -30px;">
+    </div>
+    <div class="col-sm-12 hero-content">
+        <h1>ERPNext Chart of Accounts</h1>
+        <p>Help build Chart of Accounts for ERPNext</p>
+        <a class="x-large blue button" href="#charts">Select a Chart to Start</a>
+        <p class="description new-chart">
+			or create a new chart.
+		</p>
+    </div>
+</div>
+
+<div id="charts" style="padding-top:40px">
+	
+	<div class="chart-search">
+		<form method="get" action="#charts">
+			<input type="text" class="form-control" name="search" placeholder="Search by country" />
+		</form>
+	</div>
+
+	{% if frappe.form_dict.search %}
+	<p>Filtered by "{{ frappe.form_dict.search }}". <a href="/">Clear</a></p>
+	{% endif %}
+
+	<div class="padding"></div>
+
+	{{ show_charts("My In-Progress Charts", my_open_charts, show_user=False) }}
+	{{ show_charts("User Contributed Charts", contributed_charts) }}
+	{{ show_charts("Standard Charts", sample_charts, show_user=False) }}
+</div>

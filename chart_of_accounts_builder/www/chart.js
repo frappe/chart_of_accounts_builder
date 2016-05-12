@@ -47,14 +47,16 @@ erpnext.ChartBuilder = Class.extend({
 
 	bind_node_toolbar: function() {
 		var me = this;
+		
 
 		$(".tree-link").on("click", function() {
 			me.selected_node = this;
 
 			$('.bold').removeClass('bold');
 			$(this).addClass("bold");
-
-			var toolbar = $('<span class="tree-node-toolbar btn-group"></span>').insertAfter(this);
+			
+			var toolbar = $('<span class="tree-node-toolbar btn-group"></span>')
+				.appendTo($(this).siblings('.tree-node-toolbar-wrapper'));
 
 			$.each(me.toolbar, function(i, item) {
 				if(!cint($(me.selected_node).attr("data-is-group")) && item.label=="Add Child") {
@@ -162,7 +164,7 @@ erpnext.ChartBuilder = Class.extend({
 			frappe.msgprint(__("Select a group node first."));
 			return;
 		}
-
+		
 		this.make_new_account(node.attr('data-name'), node.attr('data-company'))
 	},
 
@@ -267,9 +269,9 @@ erpnext.ChartBuilder = Class.extend({
 			var v = d.get_values();
 			if(!v) return;
 
-			v.parent_account = null;
+			v.parent_account = parent_account;
 			v.company = company;
-			v.is_root = is_root;
+			v.is_root = is_root ? 1 : 0;
 			v.is_group = is_root ? 1 : v.is_group;
 			
 			return frappe.call({
