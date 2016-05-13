@@ -118,23 +118,6 @@ erpnext.ChartBuilder = Class.extend({
 			]
 		})
 
-		d.set_primary_action(__("Submit"), function() {
-			var btn = this;
-			var v = d.get_values();
-			if(!v) return;
-			v.name = node.attr("data-name")
-
-			return frappe.call({
-				args: v,
-				method: 'chart_of_accounts_builder.utils.update_account',
-				freeze: true,
-				callback: function(r) {
-					d.hide();
-					window.location.reload();
-				}
-			});
-		});
-		
 		//show root_type if root and tax_rate if account_type is tax
 		var fd = d.fields_dict;
 		
@@ -153,6 +136,24 @@ erpnext.ChartBuilder = Class.extend({
 		var field = d.get_field("account_name");
 		field.df.read_only = 1;
 		field.refresh();
+		
+		d.set_primary_action(__("Submit"), function() {
+			var btn = this;
+			var v = d.get_values();
+			if(!v) return;
+			v.name = node.attr("data-name")
+			v.is_root = is_root
+
+			return frappe.call({
+				args: v,
+				method: 'chart_of_accounts_builder.utils.update_account',
+				freeze: true,
+				callback: function(r) {
+					d.hide();
+					window.location.reload();
+				}
+			});
+		});
 
 		d.show();
 	},
@@ -190,7 +191,8 @@ erpnext.ChartBuilder = Class.extend({
 				args: {
 					doctype: "Account",
 					old: selected_account_id,
-					"new": v.new_account_name
+					"new": v.new_account_name,
+					"ignore_permissions": true
 				},
 				freeze: true,
 				btn: d.get_primary_btn(),
@@ -210,10 +212,9 @@ erpnext.ChartBuilder = Class.extend({
 		var node = $(this.selected_node);
 
 		return frappe.call({
-			method: 'frappe.client.delete',
+			method: 'chart_of_accounts_builder.utils.delete_account',
 			args: {
-				doctype: "Account",
-				name: node.attr("data-name")
+				account: node.attr("data-name")
 			},
 			freeze: true,
 			callback: function(r, rt) {
@@ -273,6 +274,7 @@ erpnext.ChartBuilder = Class.extend({
 			v.company = company;
 			v.is_root = is_root ? 1 : 0;
 			v.is_group = is_root ? 1 : v.is_group;
+			v.ignore_permissions = 0;
 			
 			return frappe.call({
 				args: v,

@@ -36,6 +36,7 @@ def setup_charts(delete_existing=True):
 
 @frappe.whitelist()
 def update_account(args=None):
+	frappe.local.flags.allow_unverified_charts = True
 	if not args:
 		args = frappe.local.form_dict
 		args.pop("cmd")
@@ -45,13 +46,21 @@ def update_account(args=None):
 	account = frappe.get_doc("Account", args.name)
 	account.update(args)
 	account.flags.ignore_permissions = True
+	if args.get("is_root"):
+		account.flags.ignore_mandatory = True
+	
 	account.save()
+	
+	frappe.local.flags.allow_unverified_charts = False
+	
+@frappe.whitelist()
+def delete_account(account):
+	frappe.delete_doc("Account", account, ignore_permissions=True)
 
 @frappe.whitelist()
 def fork(company):
 	ref_company = frappe.get_doc("Company", company)
-	
-	fork = create_company(ref_company.name, ref_company.country, 
+	fork = create_company(ref_company.forked_from or ref_company.name, ref_company.country, 
 		ref_company.default_currency, ref_company.chart_of_accounts, ref_company.name)
 	
 	return fork
@@ -67,9 +76,10 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	company.abbr = random_string(3)
 	company.forked = 1
 	company.forked_from = forked_from
-	
 	company = append_number_if_name_exists(company)
 	company.company_name = company.name
+	
+	company.flags.ignore_permissions = True
 	
 	company.insert(ignore_permissions=True)
 	
