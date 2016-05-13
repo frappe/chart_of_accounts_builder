@@ -45,11 +45,10 @@
 		{% endif %}
 		
 		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
-			<button class="btn btn-default pull-right star-button" 
-				style="margin-left: 5px;">
+			<button class="btn btn-default pull-right star-button">
 					<span class="octicon octicon-star"></span>
-					<span class="text">Star</span>
-					<span class="star-count">{{ stars }}</span>
+					<span class="text">Star </span>
+					<span class="star-count badge text-muted" style="background: #fff;">{{ stars }}</span>
 			</button>
 			<button class="btn btn-default pull-right fork-button">
 				<span class="octicon octicon-repo-forked"></span>

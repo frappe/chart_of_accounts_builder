@@ -1,0 +1,26 @@
+.page-head {
+	display: none;
+}
+.chart-list-header {
+	margin-top: -5px;
+}
+
+.chart-list-item {
+	min-height: 60px;
+}
+
+.chart-name {
+	font-weight:normal;
+}
+
+.chart-list-item-desc {
+	margin-top: -10px;
+}
+
+.new-chart {
+	cursor: pointer;
+}
+
+.new-chart:hover {
+	text-decoration: underline;
+}

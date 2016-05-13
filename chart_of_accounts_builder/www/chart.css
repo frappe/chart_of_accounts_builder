@@ -1,0 +1,72 @@
+.tree,
+.tree ul {
+  margin:0 0 0 1em; /* indentation */
+  padding:0;
+  list-style:none;
+  color: #6c7680;
+  position:relative;
+}
+
+.tree ul {margin-left:.5em} /* (indentation/2) */
+
+.tree:before,
+.tree ul:before {
+  content:"";
+  display:block;
+  width:0;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  border-left:1px solid #d1d8dd;
+}
+
+.tree li {
+  margin:0;
+  padding:0 1.5em; /* indentation + .5em */
+  line-height:2em; /* default list item's `line-height` */
+  position:relative;
+}
+
+.tree li:before {
+  content:"";
+  display:block;
+  width:10px; /* same with indentation */
+  height:0;
+  border-top:1px solid #d1d8dd;
+  margin-top:-1px; /* border top width */
+  position:absolute;
+  top:1em; /* (line-height/2) */
+  left:0;
+}
+
+.tree li:last-child:before {
+  background:white; /* same with body background */
+  height: auto;
+}
+
+.tree-link {
+	cursor: pointer;
+}
+
+.tree-link:hover {
+	text-decoration: underline;
+}
+
+.tree-add-root {
+	margin-top: 15px;
+}
+
+.tree-add-root:before,
+.tree-add-root ul:before {
+	top: -15px;
+}
+
+.account-tag {
+	font-weight: inherit;
+	margin-right: 5px;
+}
+
+.star-button {
+	margin-left: 5px;
+}

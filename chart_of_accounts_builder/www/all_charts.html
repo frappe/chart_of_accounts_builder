@@ -20,7 +20,6 @@
 					</div>
 					<div>
 						<h4 class="chart-name">{{ chart.name }}</h4>
-						<!-- <div class="small text-muted chart-list-item-desc"> {{chart.name}}</div> -->
 						{% if show_user %}
 							<div class="small text-muted chart-list-item-desc">
 									Submitted by {{ chart.submitted_by }}
@@ -37,12 +36,12 @@
 
 <div class="row hero" style="padding-bottom: 90px;">
     <div class="col-sm-12">
-        <img class="erp-hero" src="/assets/frappe_theme/img/translator.svg" style="width: 200px; margin-bottom: -30px;">
+        <img class="erp-hero" src="assets/chart_of_accounts_builder/images/chart-of-accounts-builder.svg" style="width: 200px; margin-top: -30px;">
     </div>
     <div class="col-sm-12 hero-content">
         <h1>ERPNext Chart of Accounts</h1>
         <p>Help build Chart of Accounts for ERPNext</p>
-        <a class="x-large blue button" href="#charts">Select a Chart to Start</a>
+        <a class="x-large button blue" href="#charts">Select a Chart to Start</a>
         <p class="description new-chart">
 			or create a new chart.
 		</p>
@@ -63,7 +62,7 @@
 
 	<div class="padding"></div>
 
-	{{ show_charts("My In-Progress Charts", my_open_charts, show_user=False) }}
+	{{ show_charts("My Charts", my_open_charts, show_user=False) }}
 	{{ show_charts("User Contributed Charts", contributed_charts) }}
 	{{ show_charts("Standard Charts", sample_charts, show_user=False) }}
 </div>

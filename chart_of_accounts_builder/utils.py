@@ -83,8 +83,8 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	
 	company.insert(ignore_permissions=True)
 	
-	if frappe.message_log:
-		frappe.message_log = []
+	if frappe.local.message_log:
+		frappe.local.message_log = []
 		
 	frappe.local.flags.allow_unverified_charts = False
 	
@@ -146,6 +146,7 @@ def validate_accounts(company):
 	for account in frappe.db.sql("""select name from tabAccount
 		where company=%s and ifnull(parent_account, '') != ''""", company, as_dict=1):
 			frappe.get_doc("Account", account.name).validate()
+			
 
 @frappe.whitelist()			
 def add_star(company):
