@@ -1,6 +1,7 @@
 <!-- no-cache -->
 <!-- no-header -->
 <!-- title: {{ frappe.form_dict.company }} -->
+{% extends "templates/web.html" %}
 
 {% macro render_node(parent) %}
 <ul class="tree">
@@ -32,7 +33,9 @@
 </ul>
 {% endmacro %}
 
+{% block page_content %}
 
+<style>{% include "chart_of_accounts_builder/www/chart.css" %}</style>
 
 {% if frappe.user == "Guest" %}
 <div class='alert alert-warning'>Please <a href="/login">login</a> to fork and edit this chart</div>
@@ -81,3 +84,7 @@
 </div>
 
 {% include 'templates/includes/comments/comments.html' %}
+
+<script>{% include "chart_of_accounts_builder/www/chart.js" %}</script>
+
+{% endblock %}

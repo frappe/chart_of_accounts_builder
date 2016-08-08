@@ -10,3 +10,4 @@ def get_context(context):
 	context.comment_list = get_comment_list("Company", frappe.form_dict.company)
 	context.reference_doctype = "Company"
 	context.reference_name = frappe.form_dict.company
+	context.no_cache = True

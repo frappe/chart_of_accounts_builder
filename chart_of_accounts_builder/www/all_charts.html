@@ -5,6 +5,8 @@
 <!-- no-cache -->
 <!-- title: ERPNext Charts -->
 
+{% extends "templates/web.html" %}
+
 {% macro show_charts(label, charts, show_user=True) %}
 	{% if charts %}
 	<div class=" row col-sm-12">
@@ -33,6 +35,9 @@
 {% endif %}
 {% endmacro %}
 
+{% block page_content %}
+
+<style>{% include "chart_of_accounts_builder/www/all_charts.css" %}</style>
 
 <div class="row hero" style="padding-bottom: 90px;">
     <div class="col-sm-12">
@@ -66,3 +71,7 @@
 	{{ show_charts("User Contributed Charts", contributed_charts) }}
 	{{ show_charts("Standard Charts", sample_charts, show_user=False) }}
 </div>
+
+<script>{% include "chart_of_accounts_builder/www/all_charts.js" %}</script>
+
+{% endblock %}

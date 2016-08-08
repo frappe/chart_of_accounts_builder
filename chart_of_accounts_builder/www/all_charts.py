@@ -34,3 +34,5 @@ def get_context(context):
 	context.my_open_charts = frappe.get_all("Company", filters=filters,
 		fields=["name", "country", "forked", "submitted", "stars", "owner"],
 		order_by = 'name')
+	
+	context.no_cache = True

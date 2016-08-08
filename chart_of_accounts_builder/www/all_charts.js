@@ -1,4 +1,5 @@
-frappe.provide("erpnext.all_charts")
+erpnext = {};
+erpnext.all_charts = {};
 
 frappe.ready(function() {
 	frappe.require("/assets/js/dialog.min.js");
