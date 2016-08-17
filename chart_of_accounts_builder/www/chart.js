@@ -1,4 +1,6 @@
 frappe.ready(function() {
+	frappe.require("/assets/js/dialog.min.js");
+	frappe.require("/assets/frappe/js/lib/jquery/jquery.hotkeys.js");
 	
 	frappe.provide("erpnext.ChartBuilder");
 
@@ -356,7 +358,6 @@ frappe.ready(function() {
 	})
 
 
-	frappe.require("/assets/js/dialog.min.js");
 	erpnext.coa = new erpnext.ChartBuilder();
 	erpnext.coa.bind_events();
 });
