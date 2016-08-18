@@ -144,7 +144,7 @@ def validate_account_types(company):
 
 def validate_accounts(company):
 	for account in frappe.db.sql("""select name from tabAccount
-		where company=%s and ifnull(parent_account, '') != ''""", company, as_dict=1):
+		where company=%s and ifnull(parent_account, '') != '' order by lft, rgt""", company, as_dict=1):
 			frappe.get_doc("Account", account.name).validate()
 			
 
