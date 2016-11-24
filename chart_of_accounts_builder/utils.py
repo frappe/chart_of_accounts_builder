@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
-import frappe, json
+import frappe, json, os, tarfile
 from frappe import _
 from frappe.utils import cint, random_string
 from frappe.model.naming import append_number_if_name_exists
-from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import get_charts_for_country
+from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts \
+	import get_charts_for_country, get_account_tree_from_existing_company
 
 def setup_charts(delete_existing=True):
 	frappe.local.flags.allow_unverified_charts = True
@@ -183,3 +184,41 @@ def create_new_chart(country):
 @frappe.whitelist()	
 def get_countries():
 	return [d.name for d in frappe.get_all("Country")]
+	
+
+def export_submitted_coa(country=None):
+	"""
+		Make charts tree and export submitted charts as .json files 
+		to public/files/submitted_charts
+		:param country: Country name is optional
+	"""
+	
+	filters = {"submitted": 1}
+	if country:
+		filters.update({"country": country})
+		
+	company_for_submitted_charts = frappe.get_all("Company", filters, ["name", "country"])
+	
+	for company in company_for_submitted_charts:
+		account_tree = get_account_tree_from_existing_company(company.name)
+		write_chart_to_file(account_tree, company)
+		
+def write_chart_to_file(account_tree, company):
+	"""
+		Write chart to json file and make tar file for all charts
+	"""
+	chart = {}
+	chart["name"] = company.name
+	chart["country_code"] = frappe.db.get_value("Country", company.country, "code")
+	chart["tree"] = account_tree
+	
+	path = os.path.join(os.path.abspath(frappe.get_site_path()), "public", "files", "submitted_charts")
+	frappe.create_folder(path)
+	
+	fpath = os.path.join(path, company.name + ".json")
+	if not os.path.exists(fpath):
+		with open(os.path.join(path, company.name + ".json"), "w") as f:
+			f.write(json.dumps(chart, indent=4, sort_keys=True))
+			
+	with tarfile.open(os.path.join(path, "charts.tar.gz"), "w:gz") as tar:
+		tar.add(path)
