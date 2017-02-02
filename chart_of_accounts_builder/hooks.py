@@ -10,6 +10,7 @@ app_color = "grey"
 app_email = "hello@frappe.io"
 app_version = "0.0.1"
 app_license = "MIT"
+hide_in_installer = True
 
 # Includes in <head>
 # ------------------
