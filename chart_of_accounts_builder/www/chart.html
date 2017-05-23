@@ -17,13 +17,13 @@
             data-is-group="{{ account.is_group }}"
             data-root-type="{{ account.root_type }}"
 			data-tax-rate="{{ account.tax_rate }}">{{ account.account_name }}</span>
-		
+
 		{% if account.account_type %}
 			<span class="label label-warning account-tag"> {{ account.account_type }} </span>
 		{% endif %}
-		
-		<span class="tree-node-toolbar-wrapper"></span>
-		
+
+		<span class="tree-node-toolbar-wrapper" data-account-name="{{ account.account_name }}"></span>
+
 		{% if account.is_group %}
 			{{ render_node(account.name) }}
 		{% endif %}
@@ -46,7 +46,7 @@
 		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
 		<div class='alert alert-warning'>Please fork to edit this chart</div>
 		{% endif %}
-		
+
 		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
 			<button class="btn btn-default pull-right star-button">
 					<span class="octicon octicon-star"></span>

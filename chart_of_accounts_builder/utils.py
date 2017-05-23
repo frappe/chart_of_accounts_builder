@@ -49,11 +49,11 @@ def update_account(args=None):
 	account.flags.ignore_permissions = True
 	if args.get("is_root"):
 		account.flags.ignore_mandatory = True
-	
+
 	account.save()
-	
+
 	frappe.local.flags.allow_unverified_charts = False
-	
+
 @frappe.whitelist()
 def delete_account(account):
 	frappe.delete_doc("Account", account, ignore_permissions=True)
@@ -61,14 +61,14 @@ def delete_account(account):
 @frappe.whitelist()
 def fork(company):
 	ref_company = frappe.get_doc("Company", company)
-	fork = create_company(ref_company.forked_from or ref_company.name, ref_company.country, 
+	fork = create_company(ref_company.forked_from or ref_company.name, ref_company.country,
 		ref_company.default_currency, ref_company.chart_of_accounts, ref_company.name)
-	
+
 	return fork
-	
+
 def create_company(company_name, country, default_currency, chart_of_accounts, forked_from=None):
 	frappe.local.flags.allow_unverified_charts = True
-	
+
 	company = frappe.new_doc("Company")
 	company.country = country
 	company.default_currency = default_currency
@@ -77,18 +77,18 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	company.abbr = random_string(3)
 	company.forked = 1
 	company.forked_from = forked_from
-	company = append_number_if_name_exists(company)
+	company = append_number_if_name_exists("Company", company)
 	company.company_name = company.name
-	
+
 	company.flags.ignore_permissions = True
-	
+
 	company.insert(ignore_permissions=True)
-	
+
 	if frappe.local.message_log:
 		frappe.local.message_log = []
-		
+
 	frappe.local.flags.allow_unverified_charts = False
-	
+
 	return company.name
 
 @frappe.whitelist()
@@ -134,7 +134,7 @@ def validate_account_types(company):
 			{"company": company, "account_type": account_type, "is_group": 0}):
 
 			frappe.throw(_("Please identify / create {0} Account (Ledger)").format(account_type))
-			
+
 	account_types_for_group = ["Bank", "Cash", "Stock"]
 
 	for account_type in account_types_for_group:
@@ -147,21 +147,21 @@ def validate_accounts(company):
 	for account in frappe.db.sql("""select name from tabAccount
 		where company=%s and ifnull(parent_account, '') != '' order by lft, rgt""", company, as_dict=1):
 			frappe.get_doc("Account", account.name).validate()
-			
 
-@frappe.whitelist()			
+
+@frappe.whitelist()
 def add_star(company):
 	stars_given_by = frappe.db.get_value("Company", company, "stars_given_by")
-	
+
 	if isinstance(stars_given_by, basestring):
 		stars_given_by = json.loads(stars_given_by)
-		
+
 	if not stars_given_by:
 		stars_given_by = []
-		
+
 	if frappe.session.user not in stars_given_by:
 		stars_given_by.append(frappe.session.user)
-		
+
 	stars = len(stars_given_by)
 	frappe.db.set_value("Company", company, "stars", stars)
 	frappe.db.set_value("Company", company, "stars_given_by", json.dumps(stars_given_by))
@@ -174,35 +174,35 @@ def get_home_page(user):
 @frappe.whitelist()
 def create_new_chart(country):
 	frappe.local.flags.ignore_chart_of_accounts = True
-	
+
 	company = create_company(country + " - Chart of Accounts", country, "INR", None)
-	
+
 	frappe.local.flags.ignore_chart_of_accounts = False
-	
+
 	return company
-	
-@frappe.whitelist()	
+
+@frappe.whitelist()
 def get_countries():
 	return [d.name for d in frappe.get_all("Country")]
-	
+
 
 def export_submitted_coa(country=None):
 	"""
-		Make charts tree and export submitted charts as .json files 
+		Make charts tree and export submitted charts as .json files
 		to public/files/submitted_charts
 		:param country: Country name is optional
 	"""
-	
+
 	filters = {"submitted": 1}
 	if country:
 		filters.update({"country": country})
-		
+
 	company_for_submitted_charts = frappe.get_all("Company", filters, ["name", "country"])
-	
+
 	for company in company_for_submitted_charts:
 		account_tree = get_account_tree_from_existing_company(company.name)
 		write_chart_to_file(account_tree, company)
-		
+
 def write_chart_to_file(account_tree, company):
 	"""
 		Write chart to json file and make tar file for all charts
@@ -211,14 +211,14 @@ def write_chart_to_file(account_tree, company):
 	chart["name"] = company.name
 	chart["country_code"] = frappe.db.get_value("Country", company.country, "code")
 	chart["tree"] = account_tree
-	
+
 	path = os.path.join(os.path.abspath(frappe.get_site_path()), "public", "files", "submitted_charts")
 	frappe.create_folder(path)
-	
+
 	fpath = os.path.join(path, company.name + ".json")
 	if not os.path.exists(fpath):
 		with open(os.path.join(path, company.name + ".json"), "w") as f:
 			f.write(json.dumps(chart, indent=4, sort_keys=True))
-			
+
 	with tarfile.open(os.path.join(path, "charts.tar.gz"), "w:gz") as tar:
 		tar.add(path)
