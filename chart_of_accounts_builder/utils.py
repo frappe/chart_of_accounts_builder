@@ -73,13 +73,13 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	company.country = country
 	company.default_currency = default_currency
 	company.chart_of_accounts = chart_of_accounts
-	company.name = company_name
 	company.abbr = random_string(3)
 	company.forked = 1
 	company.forked_from = forked_from
-	company = append_number_if_name_exists("Company", company)
-	company.company_name = company.name
-
+	numbered_company_name = append_number_if_name_exists("Company", company_name)
+	company.company_name = numbered_company_name
+	company.name = numbered_company_name
+	
 	company.flags.ignore_permissions = True
 
 	company.insert(ignore_permissions=True)
