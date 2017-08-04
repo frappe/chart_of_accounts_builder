@@ -185,25 +185,32 @@ def create_new_chart(country):
 def get_countries():
 	return [d.name for d in frappe.get_all("Country")]
 
-
-def export_submitted_coa(country=None):
+@frappe.whitelist()
+def export_submitted_coa(country=None, chart=None):
 	"""
 		Make charts tree and export submitted charts as .json files
 		to public/files/submitted_charts
 		:param country: Country name is optional
 	"""
 
+	path = os.path.join(os.path.abspath(frappe.get_site_path()), "public", "files", "submitted_charts")
+	frappe.create_folder(path)
+	
 	filters = {"submitted": 1}
 	if country:
 		filters.update({"country": country})
+	if chart:
+		filters.update({"name": chart})
 
 	company_for_submitted_charts = frappe.get_all("Company", filters, ["name", "country"])
 
 	for company in company_for_submitted_charts:
 		account_tree = get_account_tree_from_existing_company(company.name)
-		write_chart_to_file(account_tree, company)
+		write_chart_to_file(account_tree, company, path)
+	
+	make_tarfile(path, chart)
 
-def write_chart_to_file(account_tree, company):
+def write_chart_to_file(account_tree, company, path):
 	"""
 		Write chart to json file and make tar file for all charts
 	"""
@@ -212,13 +219,19 @@ def write_chart_to_file(account_tree, company):
 	chart["country_code"] = frappe.db.get_value("Country", company.country, "code")
 	chart["tree"] = account_tree
 
-	path = os.path.join(os.path.abspath(frappe.get_site_path()), "public", "files", "submitted_charts")
-	frappe.create_folder(path)
-
 	fpath = os.path.join(path, company.name + ".json")
 	if not os.path.exists(fpath):
 		with open(os.path.join(path, company.name + ".json"), "w") as f:
 			f.write(json.dumps(chart, indent=4, sort_keys=True))
 
-	with tarfile.open(os.path.join(path, "charts.tar.gz"), "w:gz") as tar:
-		tar.add(path)
+def make_tarfile(path, fname=None):
+	if not fname:
+		fname = "charts"
+		source_path = path
+	else:
+		source_path = os.path.join(path, fname + ".json")
+	
+	target_path = os.path.join(path, fname + ".tar.gz")
+
+	with tarfile.open(target_path, "w:gz") as tar:
+		tar.add(source_path, arcname=os.path.basename(source_path))

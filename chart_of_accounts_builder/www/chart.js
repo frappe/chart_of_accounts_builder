@@ -5,7 +5,6 @@ frappe.ready(function() {
 	frappe.require("/assets/frappe/js/lib/jquery/jquery.hotkeys.js");
 
 	frappe.provide("erpnext.ChartBuilder");
-
 	erpnext.ChartBuilder = Class.extend({
 		init: function() {
 			var me = this;
@@ -46,6 +45,10 @@ frappe.ready(function() {
 				this.bind_node_toolbar();
 				this.add_root();
 				this.submit_charts();
+			}
+
+			if ( cint(get_url_arg("forked")) && cint(get_url_arg("submitted")) ) {
+				this.download_chart();
 			}
 
 			this.add_star();
@@ -352,9 +355,24 @@ frappe.ready(function() {
 					}
 				})
 			})
-		}
-	})
+		},
 
+		download_chart: function() {
+			var company = get_url_arg("company");
+			$(".download-chart").on("click", function() {
+				return frappe.call({
+					method: "chart_of_accounts_builder.utils.export_submitted_coa",
+					args: {
+						chart: company
+					},
+					callback: function() {
+						var file_url = "/files/submitted_charts/" + company + ".tar.gz"
+						window.open(file_url);
+					}
+				})
+			});
+		}
+	}),
 
 	erpnext.coa = new erpnext.ChartBuilder();
 	erpnext.coa.bind_events();
