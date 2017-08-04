@@ -35,7 +35,7 @@
 
 {% block page_content %}
 
-<style>{% include "chart_of_accounts_builder/www/chart.css" %}</style>
+<!-- <style>{% include "chart_of_accounts_builder/www/chart.css" %}</style> -->
 
 {% if frappe.user == "Guest" %}
 <div class='alert alert-warning'>Please <a href="/login">login</a> to fork and edit this chart</div>
@@ -45,6 +45,13 @@
 	{% if frappe.user != "Guest" %}
 		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
 		<div class='alert alert-warning'>Please fork to edit this chart</div>
+		{% endif %}
+
+		{% if frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "1" %}
+			<button class="btn btn-default pull-right download-chart">
+				<span class="octicon octicon-desktop-download"></span>
+				<span class="text">Download</span>
+			</button>
 		{% endif %}
 
 		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
@@ -85,6 +92,6 @@
 
 {% include 'templates/includes/comments/comments.html' %}
 
-<script>{% include "chart_of_accounts_builder/www/chart.js" %}</script>
+<!-- <script>{% include "chart_of_accounts_builder/www/chart.js" %}</script> -->
 
 {% endblock %}
