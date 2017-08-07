@@ -46,6 +46,11 @@ To submit a chart, you need to identify / create all the accounts with following
 - **Stock:** The account group under which the warehouse account will be created.
 - **Stock Adjustment:** An expense account to book any adjustment entry of stock/inventory, and generally comes at the same level of Cost of Goods Sold.
 - **Stock Received But Not Billed:** A temporary liability account which holds the value of stock received but not billed yet and used in Perpetual Inventory.
+
+### 6. Contribute a chart
+After submission of a chart, the maintenance team of erpnext gets an automated email about it. Then they verify and test it at their end and after sucessful verification, it becomes a part of standard chart of accounts inside erpnext repository.
 	
+### 5. Download a submitted chart
+After submitting a chart, you can download it as well for immediate use. After downloading, unzip the file and place it under `erpnext/accounts/doctype/account/chart_of_accounts/verified/` directory. The file name must be started with the country code. And then you can use it for creation of chart of accounts in your company.
 
 <!-- no-sidebar -->

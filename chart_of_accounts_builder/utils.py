@@ -229,9 +229,9 @@ def make_tarfile(path, fname=None):
 		fname = "charts"
 		source_path = path
 	else:
-		source_path = os.path.join(path, frappe.as_unicode(fname) + ".json")
+		source_path = os.path.join(path, fname + ".json").encode('utf-8')
 	
-	target_path = os.path.join(path, frappe.as_unicode(fname) + ".tar.gz")
+	target_path = os.path.join(path, fname + ".tar.gz").encode('utf-8')
 
-	with tarfile.open(target_path, "w:gz") as tar:
+	with tarfile.open(target_path, "w:gz", encoding="utf-8") as tar:
 		tar.add(source_path, arcname=os.path.basename(source_path))
