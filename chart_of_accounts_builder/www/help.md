@@ -43,7 +43,7 @@ To submit a chart, you need to identify / create all the accounts with following
 - **Fixed Asset:** The account to maintain the costs of fixed assets.
 - **Payable:** The account which represents the amount owed by a company to its creditors.
 - **Receivable:** The account which represents the amount owed by a company by its debtors.
-- **Stock:** The account group under which the warehouse account will be created.
+- **Stock:** The asset account for booking the inventory value.
 - **Stock Adjustment:** An expense account to book any adjustment entry of stock/inventory, and generally comes at the same level of Cost of Goods Sold.
 - **Stock Received But Not Billed:** A temporary liability account which holds the value of stock received but not billed yet and used in Perpetual Inventory.
 
