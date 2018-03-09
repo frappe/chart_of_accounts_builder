@@ -14,17 +14,17 @@ def setup_charts(delete_existing=True):
 	if delete_existing:
 		for company in frappe.get_all("Company"):
 			if company.name not in ("Wind Power LLC", "Test Company"):
-				print "deleting {0}".format(company.name)
+				print("deleting {0}".format(company.name))
 				frappe.delete_doc("Company", company.name)
 				frappe.db.commit()
 
-	print "-"*40
+	print("-"*40)
 	for country in frappe.get_all("Country", fields=["name", "code"]):
 		charts = get_charts_for_country(country.name)
 		for i, chart in enumerate(charts):
 			if (chart != "Standard" or country.name == "United States"):
 				if not frappe.db.exists("Company", chart):
-					print chart.encode('utf-8')
+					print(chart.encode('utf-8'))
 
 					company = frappe.new_doc("Company")
 					company.company_name = chart
