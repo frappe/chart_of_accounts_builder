@@ -7,6 +7,8 @@ from frappe.model.naming import append_number_if_name_exists
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts \
 	import get_charts_for_country, get_account_tree_from_existing_company
 
+from six import string_types
+
 def setup_charts(delete_existing=True):
 	frappe.local.flags.allow_unverified_charts = True
 
@@ -79,7 +81,7 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	numbered_company_name = append_number_if_name_exists("Company", company_name)
 	company.company_name = numbered_company_name
 	company.name = numbered_company_name
-	
+
 	company.flags.ignore_permissions = True
 
 	company.insert(ignore_permissions=True)
@@ -153,7 +155,7 @@ def validate_accounts(company):
 def add_star(company):
 	stars_given_by = frappe.db.get_value("Company", company, "stars_given_by")
 
-	if isinstance(stars_given_by, basestring):
+	if isinstance(stars_given_by, string_types):
 		stars_given_by = json.loads(stars_given_by)
 
 	if not stars_given_by:
@@ -195,7 +197,7 @@ def export_submitted_coa(country=None, chart=None):
 
 	path = os.path.join(os.path.abspath(frappe.get_site_path()), "public", "files", "submitted_charts")
 	frappe.create_folder(path)
-	
+
 	filters = {"submitted": 1}
 	if country:
 		filters.update({"country": country})
@@ -207,7 +209,7 @@ def export_submitted_coa(country=None, chart=None):
 	for company in company_for_submitted_charts:
 		account_tree = get_account_tree_from_existing_company(company.name)
 		write_chart_to_file(account_tree, company, path)
-	
+
 	make_tarfile(path, chart)
 
 def write_chart_to_file(account_tree, company, path):
@@ -230,7 +232,7 @@ def make_tarfile(path, fname=None):
 		source_path = path
 	else:
 		source_path = os.path.join(path, fname + ".json").encode('utf-8')
-	
+
 	target_path = os.path.join(path, fname + ".tar.gz").encode('utf-8')
 
 	with tarfile.open(target_path, "w:gz", encoding="utf-8") as tar:
