@@ -37,17 +37,17 @@ frappe.ready(function() {
 		},
 
 		bind_events: function() {
-			if( !cint(get_url_arg("forked")) || cint(get_url_arg("submitted")) ) {
+			if( !cint(frappe.utils.get_url_arg("forked")) || cint(frappe.utils.get_url_arg("submitted")) ) {
 				this.fork_charts();
 			}
 
-			if ( cint(get_url_arg("forked")) && !cint(get_url_arg("submitted")) ) {
+			if ( cint(frappe.utils.get_url_arg("forked")) && !cint(frappe.utils.get_url_arg("submitted")) ) {
 				this.bind_node_toolbar();
 				this.add_root();
 				this.submit_charts();
 			}
 
-			if ( cint(get_url_arg("forked")) && cint(get_url_arg("submitted")) ) {
+			if ( cint(frappe.utils.get_url_arg("forked")) && cint(frappe.utils.get_url_arg("submitted")) ) {
 				this.download_chart();
 			}
 
@@ -297,14 +297,14 @@ frappe.ready(function() {
 
 		add_root: function() {
 			var me = this;
-			var company = get_url_arg("company");
+			var company = frappe.utils.get_url_arg("company");
 			$(".add-root-button").on("click", function() {
 				me.make_new_account(null, company);
 			})
 		},
 
 		fork_charts: function() {
-			var company = get_url_arg("company");
+			var company = frappe.utils.get_url_arg("company");
 			$(".fork-button").addClass("btn-primary").on("click", function() {
 				return frappe.call({
 					method: 'chart_of_accounts_builder.utils.fork',
@@ -322,7 +322,7 @@ frappe.ready(function() {
 		},
 
 		submit_charts: function() {
-			var company = get_url_arg("company");
+			var company = frappe.utils.get_url_arg("company");
 			$(".submit-chart").on("click", function() {
 				return frappe.call({
 					method: 'chart_of_accounts_builder.utils.submit_chart',
@@ -340,7 +340,7 @@ frappe.ready(function() {
 		},
 
 		add_star: function() {
-			var company = get_url_arg("company");
+			var company = frappe.utils.get_url_arg("company");
 			$(".star-button").on("click", function() {
 				return frappe.call({
 					method: 'chart_of_accounts_builder.utils.add_star',
@@ -358,7 +358,7 @@ frappe.ready(function() {
 		},
 
 		download_chart: function() {
-			var company = get_url_arg("company");
+			var company = frappe.utils.get_url_arg("company");
 			$(".download-chart").on("click", function() {
 				return frappe.call({
 					method: "chart_of_accounts_builder.utils.export_submitted_coa",
