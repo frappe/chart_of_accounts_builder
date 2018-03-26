@@ -5,6 +5,8 @@ frappe.ready(function() {
 	frappe.require("/assets/frappe/js/lib/awesomplete/awesomplete.min.js");
 	frappe.require("/assets/frappe/js/lib/awesomplete/awesomplete.css");
 	frappe.require("/assets/js/dialog.min.js");
+
+	frappe.require("/assets/js/control.min.js");
 	
 	erpnext.all_charts.make_new_chart();
 });
