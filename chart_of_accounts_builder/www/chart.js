@@ -4,6 +4,8 @@ frappe.ready(function() {
 	frappe.require("/assets/js/dialog.min.js");
 	frappe.require("/assets/frappe/js/lib/jquery/jquery.hotkeys.js");
 
+	frappe.require("/assets/js/control.min.js");
+
 	frappe.provide("erpnext.ChartBuilder");
 	erpnext.ChartBuilder = Class.extend({
 		init: function() {
