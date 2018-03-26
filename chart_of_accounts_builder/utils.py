@@ -235,5 +235,8 @@ def make_tarfile(path, fname=None):
 
 	target_path = os.path.join(path, fname + ".tar.gz").encode('utf-8')
 
+	source_path = frappe.safe_decode(source_path)
+	target_path = frappe.safe_decode(target_path)
+
 	with tarfile.open(target_path, "w:gz", encoding="utf-8") as tar:
 		tar.add(source_path, arcname=os.path.basename(source_path))
