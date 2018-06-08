@@ -33,7 +33,7 @@ get_website_user_home_page = "chart_of_accounts_builder.utils.get_home_page"
 website_context = {
 	"brand_html": 'ERPNext Charts',
 	"top_bar_items": [
-		{"label": "Help", "url": "/help", "right":1},
+		{"label": "Help", "url": "/coa-help", "right":1},
 	],
 }
 
