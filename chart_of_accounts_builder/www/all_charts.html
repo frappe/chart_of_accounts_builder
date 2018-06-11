@@ -13,7 +13,7 @@
 		<h2> {{ label }}</h2>
 		<hr class="chart-list-header">
 
-		{% for chart in charts %}	
+		{% for chart in charts %}
 			<div class="chart-list-item col-sm-12">
 				<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
 					<div class="pull-right text-muted small" style="margin-top:8px">
@@ -39,9 +39,9 @@
 
 <style>{% include "chart_of_accounts_builder/www/all_charts.css" %}</style>
 
-<div class="row hero" style="padding-bottom: 90px;">
+<div class="row hero" style="padding-bottom: 90px; text-align: center">
     <div class="col-sm-12">
-        <img class="erp-hero" src="assets/chart_of_accounts_builder/images/chart-of-accounts-builder.svg" style="width: 200px; margin-top: -30px;">
+        <img class="erp-hero" src="assets/chart_of_accounts_builder/images/chart-of-accounts-builder.svg" style="width: 200px; margin-top: 30px;">
     </div>
     <div class="col-sm-12 hero-content">
         <h1>ERPNext Chart of Accounts</h1>
@@ -54,7 +54,7 @@
 </div>
 
 <div id="charts" style="padding-top:40px">
-	
+
 	<div class="chart-search">
 		<form method="get" action="#charts">
 			<input type="text" class="form-control" name="search" placeholder="Search by country" />
