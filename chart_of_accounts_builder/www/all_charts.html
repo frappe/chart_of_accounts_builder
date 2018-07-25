@@ -15,7 +15,7 @@
 
 		{% for chart in charts %}
 			<div class="chart-list-item col-sm-12">
-				<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
+				<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}&owner={{ chart.owner }}">
 					<div class="pull-right text-muted small" style="margin-top:8px">
 						<span class="octicon octicon-star"></span>
 						<span class="star-count">{{ chart.stars }}</span>
