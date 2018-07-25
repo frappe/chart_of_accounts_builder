@@ -53,6 +53,10 @@ frappe.ready(function() {
 				this.download_chart();
 			}
 
+			if ( cint(frappe.utils.get_url_arg("submitted")) && frappe.session.user == frappe.utils.get_url_arg("owner")) {
+				this.edit_chart();
+			}
+
 			this.add_star();
 		},
 
@@ -150,6 +154,7 @@ frappe.ready(function() {
 				if(!v) return;
 				v.name = node.attr("data-name")
 				v.is_root = is_root
+				v.company = frappe.utils.get_url_arg("company");
 
 				return frappe.call({
 					args: v,
@@ -194,8 +199,9 @@ frappe.ready(function() {
 				if(!v) return;
 
 				return frappe.call({
-					method:"frappe.model.rename_doc.rename_doc",
+					method:"chart_of_accounts_builder.utils.rename_account",
 					args: {
+						company: frappe.utils.get_url_arg("company"),
 						doctype: "Account",
 						old: selected_account_id,
 						"new": v.new_account_name,
@@ -221,7 +227,8 @@ frappe.ready(function() {
 			return frappe.call({
 				method: 'chart_of_accounts_builder.utils.delete_account',
 				args: {
-					account: node.attr("data-name")
+					account: node.attr("data-name"),
+					company: frappe.utils.get_url_arg("company")
 				},
 				freeze: true,
 				callback: function(r, rt) {
@@ -287,7 +294,7 @@ frappe.ready(function() {
 
 				return frappe.call({
 					args: v,
-					method: 'erpnext.accounts.utils.add_ac',
+					method: 'chart_of_accounts_builder.utils.add_account',
 					freeze: true,
 					callback: function(r) {
 						d.hide();
@@ -375,9 +382,35 @@ frappe.ready(function() {
 					}
 				})
 			});
+		},
+
+		edit_chart: function() {
+			var company = frappe.utils.get_url_arg("company");
+			$(".edit-chart").on("click", function() {
+				return frappe.call({
+					method: "chart_of_accounts_builder.utils.edit_chart",
+					args: {
+						chart: company
+					},
+					callback: function() {
+						window.location.href = updateQueryStringParameter(window.location.href, "submitted", 0);
+					}
+				})
+			});
 		}
 	}),
 
 	erpnext.coa = new erpnext.ChartBuilder();
 	erpnext.coa.bind_events();
 });
+
+var updateQueryStringParameter = function(uri, key, value) {
+	var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+	var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+	if (uri.match(re)) {
+		return uri.replace(re, '$1' + key + "=" + value + '$2');
+	}
+	else {
+		return uri + separator + key + "=" + value;
+	}
+}

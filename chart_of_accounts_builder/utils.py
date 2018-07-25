@@ -4,6 +4,8 @@ import frappe, json, os, tarfile
 from frappe import _
 from frappe.utils import cint, random_string
 from frappe.model.naming import append_number_if_name_exists
+from frappe.model.rename_doc import rename_doc
+from erpnext.accounts.utils import add_ac
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts \
 	import get_charts_for_country, get_account_tree_from_existing_company
 
@@ -53,12 +55,27 @@ def update_account(args=None):
 		account.flags.ignore_mandatory = True
 
 	account.save()
+	disable_submitted(args.company)
 
 	frappe.local.flags.allow_unverified_charts = False
 
 @frappe.whitelist()
-def delete_account(account):
+def add_account(args):
+	account_name = add_ac(args)
+	if account_name:
+		disable_submitted(args.company)
+	return account_name
+
+@frappe.whitelist()
+def rename_account(company, **args):
+	args.pop("cmd")
+	rename_doc(**args)
+	disable_submitted(company)
+
+@frappe.whitelist()
+def delete_account(account, company):
 	frappe.delete_doc("Account", account, ignore_permissions=True)
+	disable_submitted(company)
 
 @frappe.whitelist()
 def fork(company):
@@ -211,6 +228,15 @@ def export_submitted_coa(country=None, chart=None):
 		write_chart_to_file(account_tree, company, path)
 
 	make_tarfile(path, chart)
+
+@frappe.whitelist()
+def edit_chart(chart):
+	frappe.cache().hset("edit_chart", frappe.session.user, True)
+
+def disable_submitted(company):
+	if frappe.cache().hget("edit_chart", frappe.session.user):
+		frappe.db.set_value("Company", company, "submitted", 0)
+		frappe.cache().hset("edit_chart", frappe.session.user, False)
 
 def write_chart_to_file(account_tree, company, path):
 	"""
