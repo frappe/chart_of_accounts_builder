@@ -72,6 +72,7 @@ frappe.ready(function() {
 			}
 
 			this.add_star();
+			this.email_comment();
 		},
 
 		bind_node_toolbar: function() {
@@ -426,6 +427,19 @@ frappe.ready(function() {
 					}
 				})
 			})
+		},
+
+		email_comment: function() {
+			$('#submit-comment').on('click', function() {
+				return frappe.call({
+					method: "chart_of_accounts_builder.utils.email_comment",
+					args: {
+						company: frappe.utils.get_url_arg("company"),
+						comment: $("[name='comment']").val()
+					},
+					callback: function() { }
+				})
+			});
 		},
 
 		download_chart: function() {

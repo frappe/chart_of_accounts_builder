@@ -151,6 +151,15 @@ def notify_frappe_team(company):
 
 	frappe.sendmail(recipients="developers@erpnext.com", subject=subject, message=message)
 
+@frappe.whitelist()
+def email_comment(company, comment):
+	subject = _("New comment on Charts - {0}").format(company)
+	message = _("{0} <small>by {1}</small>").format(comment, frappe.session.user)
+	message += "<p><a href='chart?company={0}' style='font-size: 80%'>{1}</a></p>"\
+		.format(company, _("View it in your browser"))
+
+	frappe.sendmail(recipients="developers@erpnext.com", subject=subject, message=message)
+
 def validate_roots(company):
 	roots = frappe.db.sql("""select account_name, root_type from tabAccount
 		where company=%s and ifnull(parent_account, '') = ''""", company, as_dict=1)
