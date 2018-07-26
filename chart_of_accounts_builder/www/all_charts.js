@@ -9,6 +9,21 @@ frappe.ready(function() {
 	frappe.require("/assets/js/control.min.js");
 	
 	erpnext.all_charts.make_new_chart();
+
+	// toggle between tabs
+    $(".tab_content").hide();
+    $(".tab_content:first").show();
+
+    $("ul.tabs li").click(function() {
+		$(".tab_content").hide();
+		var activeTab = $(this).attr("rel");
+		$("#"+activeTab).toggle();
+
+		$("ul.tabs li").removeClass("active");
+		$(this).addClass("active");
+    });
+
+	$('ul.tabs li').last().addClass("tab_last");
 });
 
 
