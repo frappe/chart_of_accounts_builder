@@ -60,7 +60,7 @@
 			<select type="text" class="form-control" name="search" placeholder="Search by country" onchange="this.form.submit()">
 				<option value="" disabled selected> Search by country </option>
 				{% for d in country %}
-					<option value = {{ d }}> {{ d }} </option>
+					<option value = "{{ d }}"> {{ d }} </option>
 				{% endfor %}
 			</select>
 		</form>
