@@ -6,6 +6,7 @@ from frappe.utils import cint, random_string
 from frappe.model.naming import append_number_if_name_exists
 from frappe.model.rename_doc import rename_doc
 from erpnext.accounts.utils import add_ac
+from erpnext.setup.doctype.company.delete_company_transactions import delete_company_transactions
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts \
 	import get_charts_for_country, get_account_tree_from_existing_company
 
@@ -130,6 +131,13 @@ def submit_chart(company, chart_of_accounts_name, domain=None):
 
 	frappe.cache().hset("init_details", frappe.session.user, {})
 	notify_frappe_team(company)
+
+@frappe.whitelist()
+def delete_chart(company):
+	# delete company and associated chart of accounts
+	delete_company_transactions(company)
+	frappe.delete_doc('Company', company)
+	frappe.cache().hset("init_details", frappe.session.user, {})
 
 def notify_frappe_team(company):
 	subject = "New Chart of Accounts {chart_name} submitted".format(chart_name=company)

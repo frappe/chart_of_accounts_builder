@@ -60,6 +60,7 @@ frappe.ready(function() {
 				this.bind_node_toolbar();
 				this.add_root();
 				this.submit_charts();
+				this.delete_charts();
 			}
 
 			if ( cint(frappe.utils.get_url_arg("forked")) && cint(frappe.utils.get_url_arg("submitted")) ) {
@@ -378,6 +379,35 @@ frappe.ready(function() {
 
 				d.show();
 			})
+		},
+
+		delete_charts: function() {
+			var company = frappe.utils.get_url_arg("company");
+
+			$(".delete-chart").on("click", function() {
+				frappe.confirm(
+					__('Are you sure you want to delete this Chart of Accounts'),
+					function() { // called on-'yes' selection
+						return frappe.call({
+							method: "chart_of_accounts_builder.utils.delete_chart",
+							args: {
+								company: company
+							},
+							freeze: true,
+							callback: function(r, rt) {
+								if(!r.exc) {
+									window.location.href = "/all_charts";
+								}
+							},
+							onerror: function() {
+								frappe.msgprint(__("Wrong Password"));
+							}
+						});
+					},
+					function() { } // called on-'no' selection
+				)
+			});
+
 		},
 
 		add_star: function() {
