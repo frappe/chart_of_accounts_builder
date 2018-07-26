@@ -334,19 +334,36 @@ frappe.ready(function() {
 
 		submit_charts: function() {
 			var company = frappe.utils.get_url_arg("company");
+
 			$(".submit-chart").on("click", function() {
-				return frappe.call({
-					method: 'chart_of_accounts_builder.utils.submit_chart',
-					args: {
-						company: company
-					},
-					freeze: true,
-					callback: function(r, rt) {
-						if(!r.exc) {
-							window.location.href = "/all_charts"
+
+				var d = new frappe.ui.Dialog({
+					title:__('Assign Name'),
+					fields: [
+						{
+							fieldtype:'Data', fieldname:'chart_of_accounts_name', label:__('Chart of Accounts Name'), reqd:true,
+							description: __("Assign a unique name to this Chart.")
 						}
-					}
-				})
+					]
+				});
+
+				d.set_primary_action(__("Submit"), function() {
+					return frappe.call({
+						method: 'chart_of_accounts_builder.utils.submit_chart',
+						args: {
+							company: company,
+							chart_of_accounts_name: d.get_value("chart_of_accounts_name")
+						},
+						freeze: true,
+						callback: function(r, rt) {
+							if(!r.exc) {
+								window.location.href = "/all_charts"
+							}
+						}
+					})
+				});
+
+				d.show();
 			})
 		},
 

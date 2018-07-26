@@ -111,12 +111,13 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	return company.name
 
 @frappe.whitelist()
-def submit_chart(company):
+def submit_chart(company, chart_of_accounts_name):
 	validate_roots(company)
 	validate_account_types(company)
 	validate_accounts(company)
 
 	frappe.db.set_value("Company", company, "submitted", 1)
+	frappe.db.set_value("Company", company, "chart_of_accounts_name", chart_of_accounts_name)
 
 	notify_frappe_team(company)
 
