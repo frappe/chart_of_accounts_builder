@@ -1,11 +1,17 @@
 import frappe
 
 def get_context(context):
+	# fetch all the country
+	context.country = [d.name for d in frappe.db.get_all('Country')]
+
 	filters = {
 		'forked': 0
 	}
+
 	if frappe.form_dict.search:
-		filters.update({'country': ('like', '%' + frappe.form_dict.search + '%')})
+		filters.update({
+			"country": frappe.form_dict.search
+		})
 
 	# standard sample charts
 	context.sample_charts = frappe.get_all("Company", filters=filters,
