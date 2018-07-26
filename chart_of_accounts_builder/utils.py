@@ -60,7 +60,10 @@ def update_account(args=None):
 	frappe.local.flags.allow_unverified_charts = False
 
 @frappe.whitelist()
-def add_account(args):
+def add_account(args=None):
+	if not args:
+		args = frappe.local.form_dict
+
 	account_name = add_ac(args)
 	if account_name:
 		disable_submitted(args.company)
@@ -111,14 +114,21 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	return company.name
 
 @frappe.whitelist()
-def submit_chart(company, chart_of_accounts_name):
+def submit_chart(company, chart_of_accounts_name, domain=None):
 	validate_roots(company)
 	validate_account_types(company)
 	validate_accounts(company)
 
+	if frappe.db.get_value("Company", {"name": ["!=", company],
+		"chart_of_accounts_name": chart_of_accounts_name}, "chart_of_accounts_name"):
+		frappe.throw(_("Chart of Acconuts with this name already exist. Please select a different name."))
+
 	frappe.db.set_value("Company", company, "submitted", 1)
 	frappe.db.set_value("Company", company, "chart_of_accounts_name", chart_of_accounts_name)
+	if domain:
+		frappe.db.set_value("Company", company, "domain", domain)
 
+	frappe.cache().hset("init_details", frappe.session.user, {})
 	notify_frappe_team(company)
 
 def notify_frappe_team(company):
@@ -267,3 +277,21 @@ def make_tarfile(path, fname=None):
 
 	with tarfile.open(target_path, "w:gz", encoding="utf-8") as tar:
 		tar.add(source_path, arcname=os.path.basename(source_path))
+
+@frappe.whitelist()
+def init_details(company):
+	out = frappe.cache().hget("init_details", frappe.session.user)
+
+	if not out:
+		company_details = frappe.db.get_all("Company", {"name": company}, ["chart_of_accounts_name,\
+			name, submitted, forked, included_in_erpnext, domain"])[0]
+		domains = [d.name for d in frappe.db.get_all("Domain")]
+
+		out = {
+			"accounts_meta": frappe.get_meta('Account'),
+			"company": company_details or {},
+			"domains": domains
+		}
+		frappe.cache().hset("init_details", frappe.session.user, out)
+
+	return out

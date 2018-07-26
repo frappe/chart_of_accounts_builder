@@ -10,6 +10,19 @@ frappe.ready(function() {
 	erpnext.ChartBuilder = Class.extend({
 		init: function() {
 			var me = this;
+
+			frappe.call({
+				method: "chart_of_accounts_builder.utils.init_details",
+				args: {
+					company: frappe.utils.get_url_arg("company")
+				},
+				callback: function(r) {
+					me.accounts_meta = r.message.accounts_meta;
+					me.company_details = r.message.company || {};
+					me.domains = r.message.domains;
+				}
+			});
+
 			this.toolbar = [
 				{
 					label: __("Edit"),
@@ -111,15 +124,12 @@ frappe.ready(function() {
 						description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
 					{
 						fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-						options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax',
-							'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed',
-							'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset',
-							'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='account_type')[0].options,
 						default: node.attr("data-account-type"),
 						description: __("Optional. This setting will be used to filter in various transactions.")},
 					{
 						fieldtype:'Select', fieldname:'root_type', label:__('Root Type'),
-						options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n'),
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='root_type')[0].options,
 						default: node.attr("data-root-type")
 					},
 					{
@@ -253,15 +263,12 @@ frappe.ready(function() {
 						description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
 					{
 						fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-						options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax',
-							'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed',
-							'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset',
-							'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='account_type')[0].options,
 						description: __("Optional. This setting will be used to filter in various transactions.")},
 					{ fieldtype:'Data', fieldname:'tax_rate', label:__('Tax Rate') },
 					{
 						fieldtype:'Select', fieldname:'root_type', label:__('Root Type'),
-						options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n')
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='root_type')[0].options
 					},
 				]
 			})
@@ -334,15 +341,20 @@ frappe.ready(function() {
 
 		submit_charts: function() {
 			var company = frappe.utils.get_url_arg("company");
+			var me = this;
 
 			$(".submit-chart").on("click", function() {
-
 				var d = new frappe.ui.Dialog({
 					title:__('Assign Name'),
 					fields: [
 						{
-							fieldtype:'Data', fieldname:'chart_of_accounts_name', label:__('Chart of Accounts Name'), reqd:true,
-							description: __("Assign a unique name to this Chart.")
+							fieldtype:'Data', fieldname:'chart_of_accounts_name', label:__('Chart of Accounts Name'),
+							reqd:true, description: __("Assign a unique name to this Chart."),
+							default: me.company_details.chart_of_accounts_name || ""
+						},
+						{
+							fieldtype:'Select', fieldname:'domain', label:__('Domain'),
+							options: me.domains, default: me.company_details.domain || ""
 						}
 					]
 				});
@@ -352,7 +364,8 @@ frappe.ready(function() {
 						method: 'chart_of_accounts_builder.utils.submit_chart',
 						args: {
 							company: company,
-							chart_of_accounts_name: d.get_value("chart_of_accounts_name")
+							chart_of_accounts_name: d.get_value("chart_of_accounts_name"),
+							domain: d.get_value("domain")
 						},
 						freeze: true,
 						callback: function(r, rt) {
