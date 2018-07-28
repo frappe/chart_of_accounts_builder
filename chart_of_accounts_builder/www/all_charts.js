@@ -10,20 +10,21 @@ frappe.ready(function() {
 	
 	erpnext.all_charts.make_new_chart();
 
-	// toggle between tabs
-    $(".tab_content").hide();
-    $(".tab_content:first").show();
+	// hide all charts by default
+	if(frappe.session.user!="Guest") {
+		$(".tab1").hide();
+	}
 
-    $("ul.tabs li").click(function() {
-		$(".tab_content").hide();
-		var activeTab = $(this).attr("rel");
-		$("#"+activeTab).toggle();
-
-		$("ul.tabs li").removeClass("active");
-		$(this).addClass("active");
-    });
-
-	$('ul.tabs li').last().addClass("tab_last");
+	// toggle all charts
+	$('.show_all_charts').change(function() {
+		if($('[data-fieldname="show_all_charts"]')[0].checked) {
+			$(".tab2").hide();
+			$(".tab1").show();
+		} else {
+			$(".tab2").show();
+			$(".tab1").hide();
+		}
+	})
 });
 
 
