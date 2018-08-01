@@ -295,7 +295,7 @@ def make_tarfile(path, fname=None):
 	with tarfile.open(target_path, "w:gz", encoding="utf-8") as tar:
 		tar.add(source_path, arcname=os.path.basename(source_path))
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def init_details(company):
 	out = frappe.cache().hget("init_details", frappe.session.user)
 
