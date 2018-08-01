@@ -67,7 +67,7 @@
 		</form>
 	</div>
 
-	{% if frappe.user != "Guest" and my_open_charts %}
+	{% if frappe.user != "Guest" and my_charts %}
 		<div class="checkbox show_all_charts" style="padding-top: 20px;">
 			<label>
 				<input type="checkbox" data-fieldname="show_all_charts" />
@@ -83,7 +83,7 @@
 	{% endif %}
 
 	{{ show_charts("All Charts", all_charts, "tab1", show_user=True) }}
-	{{ show_charts("My Charts", my_open_charts, "tab2") }}
+	{{ show_charts("My Charts", my_charts, "tab2") }}
 </div>
 
 <script>{% include "chart_of_accounts_builder/www/all_charts.js" %}</script>

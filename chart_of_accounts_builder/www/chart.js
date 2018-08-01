@@ -117,8 +117,8 @@ frappe.ready(function() {
 				title: __('Edit Properties'),
 				fields: [
 					{
-						fieldtype: "Data", fieldname: "account_name", label: "Account Name",
-						"default": node.attr("data-account-name")
+						fieldtype: "Data", fieldname: "account_name", label: "Account",
+						"default": node.attr("data-name")
 					},
 					{
 						fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
@@ -196,12 +196,19 @@ frappe.ready(function() {
 		rename_account: function() {
 			var selected_account_id = $(this.selected_node).attr("data-name");
 			var selected_account_name = $(this.selected_node).attr("data-account-name");
+			var selected_account_number = $(this.selected_node).attr("data-account-number");
 
 			var d = new frappe.ui.Dialog({
 				title:__('Rename Account'),
 				fields: [
-					{fieldtype:'Data', fieldname:'new_account_name',
-					label:__('New Account Name'), reqd:true, default: selected_account_name}
+					{
+						fieldtype:'Data', fieldname:'new_account_name',
+						label:__('New Account Name'), reqd:true, default: selected_account_name
+					},
+					{
+						fieldtype:'Data', fieldname:'account_number', 
+						label:__('Account Number'), reqd:false, default: selected_account_number
+					}
 				]
 			});
 
@@ -214,10 +221,9 @@ frappe.ready(function() {
 					method:"chart_of_accounts_builder.utils.rename_account",
 					args: {
 						company: frappe.utils.get_url_arg("company"),
-						doctype: "Account",
-						old: selected_account_id,
-						"new": v.new_account_name,
-						"ignore_permissions": true
+						old_name: selected_account_id,
+						"new_account_name": v.new_account_name,
+						"new_account_number": v.account_number
 					},
 					freeze: true,
 					btn: d.get_primary_btn(),

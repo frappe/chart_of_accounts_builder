@@ -15,8 +15,7 @@ def get_context(context):
 
 	# standard sample charts
 	sample_charts = frappe.get_all("Company", filters=filters,
-		fields=["name", "country", "forked", "submitted", "stars", "owner"],
-		order_by = 'stars desc, country asc')	
+		fields=["name", "country", "forked", "submitted", "stars", "owner"])	
 		
 		
 	# User contributed charts
@@ -26,8 +25,7 @@ def get_context(context):
 	})
 
 	contributed_charts = frappe.get_all("Company", filters=filters,
-		fields=["name", "country", "forked", "submitted", "stars", "owner"],
-		order_by = 'stars desc, country asc')
+		fields=["name", "country", "forked", "submitted", "stars", "owner"])
 
 	all_charts = contributed_charts + sample_charts
 
@@ -37,13 +35,8 @@ def get_context(context):
 	for d in context.all_charts:
 		d.submitted_by = frappe.db.get_value("User", d.owner, "full_name")
 		
-	# User's WIP chart
-	filters.update({
-		"owner": frappe.session.user,
-		"forked": 1,
-		"submitted": 0,
-	})
-	context.my_open_charts = frappe.get_all("Company", filters=filters,
+	# User's chart
+	context.my_charts = frappe.get_all("Company", filters={"owner": frappe.session.user},
 		fields=["name", "country", "forked", "submitted", "stars", "owner"],
 		order_by = 'name')
 	

@@ -35,6 +35,10 @@ frappe.ready(function() {
 
 erpnext.all_charts.make_new_chart = function() {
 	$(".new-chart").on("click", function() {
+		if(frappe.session.user == "Guest") {
+			frappe.msgprint(__("Please login to create a new chart of accounts"));
+			return;
+		}
 		frappe.call({
 			method: "chart_of_accounts_builder.utils.get_countries",
 			callback: function(r) {

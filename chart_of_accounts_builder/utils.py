@@ -9,7 +9,7 @@ from erpnext.accounts.utils import add_ac
 from erpnext.setup.doctype.company.delete_company_transactions import delete_company_transactions
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts \
 	import get_charts_for_country, get_account_tree_from_existing_company
-
+from erpnext.accounts.doctype.account.account import update_account_number
 from six import string_types
 
 def setup_charts(delete_existing=True):
@@ -24,7 +24,7 @@ def setup_charts(delete_existing=True):
 				frappe.db.commit()
 
 	print("-"*40)
-	for country in frappe.get_all("Country", fields=["name", "code"]):
+	for country in frappe.get_all("Country", fields=["name", "code"], filters={"name": "India"}):
 		charts = get_charts_for_country(country.name)
 		for i, chart in enumerate(charts):
 			if (chart != "Standard" or country.name == "United States"):
@@ -71,9 +71,8 @@ def add_account(args=None):
 	return account_name
 
 @frappe.whitelist()
-def rename_account(company, **args):
-	args.pop("cmd")
-	rename_doc(**args)
+def rename_account(company, old_name, new_account_name, new_account_number):
+	update_account_number(old_name, new_account_name, new_account_number)
 	disable_submitted(company)
 
 @frappe.whitelist()
@@ -173,14 +172,13 @@ def validate_roots(company):
 			frappe.throw(_("Root Type for {0} must be one of the Asset, Liability, Income, Expense and Equity").format(account.account_name))
 
 def validate_account_types(company):
-	account_types_for_ledger = ["Cost of Goods Sold", "Depreciation", "Expenses Included In Valuation",
-		"Fixed Asset", "Payable", "Receivable", "Stock Adjustment", "Stock Received But Not Billed"]
+	account_types_for_ledger = ["Cost of Goods Sold", "Depreciation", "Fixed Asset", "Payable", "Receivable", "Stock Adjustment"]
 
 	for account_type in account_types_for_ledger:
 		if not frappe.db.get_value("Account",
 			{"company": company, "account_type": account_type, "is_group": 0}):
 
-			frappe.throw(_("Please identify / create {0} Account (Ledger)").format(account_type))
+			frappe.throw(_("Please identify / create {0} Account (Ledger)").format(_(account_type)))
 
 	account_types_for_group = ["Bank", "Cash", "Stock"]
 
@@ -228,7 +226,7 @@ def create_new_chart(country):
 
 	return company
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_countries():
 	return [d.name for d in frappe.get_all("Country")]
 
@@ -271,7 +269,9 @@ def write_chart_to_file(account_tree, company, path):
 		Write chart to json file and make tar file for all charts
 	"""
 	chart = {}
-	chart["name"] = company.name
+	chart["name"] = company.chart_of_accounts_name or company.name
+	if company.domain:
+		chart["domain"] = company.domain
 	chart["country_code"] = frappe.db.get_value("Country", company.country, "code")
 	chart["tree"] = account_tree
 
