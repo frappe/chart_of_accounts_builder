@@ -7,32 +7,33 @@
 
 {% extends "templates/web.html" %}
 
-{% macro show_charts(label, charts, show_user=True) %}
+{% macro show_charts(label, charts, tab, show_user=True) %}
 	{% if charts %}
-	<div class=" row col-sm-12">
-		<h2> {{ label }}</h2>
-		<hr class="chart-list-header">
+		<div class="{{ tab }} row col-sm-12">
+			<h2> {{ label }}</h2>
+			<hr class="chart-list-header">
 
-		{% for chart in charts %}
-			<div class="chart-list-item col-sm-12">
-				<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}">
-					<div class="pull-right text-muted small" style="margin-top:8px">
-						<span class="octicon octicon-star"></span>
-						<span class="star-count">{{ chart.stars }}</span>
-					</div>
-					<div>
-						<h4 class="chart-name">{{ chart.name }}</h4>
-						{% if show_user %}
-							<div class="small text-muted chart-list-item-desc">
-									Submitted by {{ chart.submitted_by }}
-							</div>
-						{% endif %}
-					</div>
-				</a>
-			</div>
-		{% endfor %}
-	</div>
-{% endif %}
+			{% for chart in charts %}
+				<div class="chart-list-item col-sm-12">
+					<a href="/chart?company={{ chart.name }}&forked={{ chart.forked }}&submitted={{ chart.submitted }}&owner={{ chart.owner }}">
+						<div class="pull-right text-muted small" style="margin-top:8px">
+							<span class="octicon octicon-star"></span>
+							<span class="star-count">{{ chart.stars }}</span>
+						</div>
+						<div>
+							<h4 class="chart-name">{{ chart.name }}</h4>
+							{% if show_user and chart.submitted_by != "Administrator" %}
+								<div class="small text-muted chart-list-item-desc">
+										Submitted by {{ chart.submitted_by }}
+								</div>
+							{% endif %}
+						</div>
+					</a>
+				</div>
+			{% endfor %}
+		</div>
+
+	{% endif %}
 {% endmacro %}
 
 {% block page_content %}
@@ -57,19 +58,32 @@
 
 	<div class="chart-search">
 		<form method="get" action="#charts">
-			<input type="text" class="form-control" name="search" placeholder="Search by country" />
+			<select type="text" class="form-control" name="search" placeholder="Search by country" onchange="this.form.submit()">
+				<option value="" disabled selected> Search by country </option>
+				{% for d in country %}
+					<option value = "{{ d }}"> {{ d }} </option>
+				{% endfor %}
+			</select>
 		</form>
 	</div>
 
-	{% if frappe.form_dict.search %}
-	<p>Filtered by "{{ frappe.form_dict.search }}". <a href="/">Clear</a></p>
+	{% if frappe.user != "Guest" and my_open_charts %}
+		<div class="checkbox show_all_charts" style="padding-top: 20px;">
+			<label>
+				<input type="checkbox" data-fieldname="show_all_charts" />
+				Show All Charts
+			</label>
+		</div>
+	{% else %}
+		<div class="padding"></div>
 	{% endif %}
 
-	<div class="padding"></div>
+	{% if frappe.form_dict.search %}
+		<p>Filtered by "{{ frappe.form_dict.search }}". <a href="/">Clear</a></p>
+	{% endif %}
 
-	{{ show_charts("My Charts", my_open_charts, show_user=False) }}
-	{{ show_charts("User Contributed Charts", contributed_charts) }}
-	{{ show_charts("Standard Charts", sample_charts, show_user=False) }}
+	{{ show_charts("All Charts", all_charts, "tab1", show_user=True) }}
+	{{ show_charts("My Charts", my_open_charts, "tab2") }}
 </div>
 
 <script>{% include "chart_of_accounts_builder/www/all_charts.js" %}</script>

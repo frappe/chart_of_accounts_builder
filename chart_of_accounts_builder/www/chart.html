@@ -16,7 +16,7 @@
 			data-company="{{ account.company }}"
             data-is-group="{{ account.is_group }}"
             data-root-type="{{ account.root_type }}"
-			data-tax-rate="{{ account.tax_rate }}">{{ account.account_name }}</span>
+			data-tax-rate="{{ account.tax_rate }}">{{ account.name }}</span>
 
 		{% if account.account_type %}
 			<span class="label label-warning account-tag"> {{ account.account_type }} </span>
@@ -43,8 +43,15 @@
 
 <div>
 	{% if frappe.user != "Guest" %}
-		{% if frappe.form_dict.forked == "0" or frappe.form_dict.submitted == "1" %}
-		<div class='alert alert-warning'>Please fork to edit this chart</div>
+		{% if frappe.form_dict.forked == "0" or (frappe.form_dict.submitted == "1" and frappe.session.user != frappe.form_dict.owner) %}
+		<div class='alert alert-warning'>Please fork to edit this chart </div>
+		{% endif %}
+
+		{% if frappe.session.user == frappe.form_dict.owner and frappe.form_dict.submitted == "1" %}
+			<button class="btn btn-default pull-right edit-chart">
+				<span class="octicon octicon-pencil"></span>
+				<span class="text">Edit</span>
+			</button>
 		{% endif %}
 
 		{% if frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "1" %}
@@ -58,17 +65,25 @@
 			<button class="btn btn-default pull-right star-button">
 					<span class="octicon octicon-star"></span>
 					<span class="text">Star </span>
-					<span class="star-count badge text-muted" style="background: #fff;">{{ stars }}</span>
+					<span class="star-count badge" style="background: #858585;">{{ stars }}</span>
 			</button>
-			<button class="btn btn-default pull-right fork-button">
-				<span class="octicon octicon-repo-forked"></span>
-				<span class="text">Fork</span>
-			</button>
+
+			{% if frappe.form_dict.forked == "0" or frappe.session.user != frappe.form_dict.owner %}
+				<button class="btn btn-default pull-right fork-button">
+					<span class="octicon octicon-repo-forked"></span>
+					<span class="text">Fork</span>
+				</button>
+			{% endif %}
 
 		{% elif frappe.form_dict.forked == "1" and frappe.form_dict.submitted == "0" %}
 			<button class="btn btn-primary btn-accept pull-right submit-chart">
 				<span class="octicon octicon-check"></span>
 				<span class="text">Submit</span>
+			</button>
+
+			<button class="btn btn-default pull-right delete-chart">
+				<span class="octicon octicon-x"></span>
+				<span class="text">Delete</span>
 			</button>
 		{% endif %}
 	{% endif %}

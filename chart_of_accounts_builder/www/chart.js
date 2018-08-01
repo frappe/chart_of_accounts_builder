@@ -10,6 +10,19 @@ frappe.ready(function() {
 	erpnext.ChartBuilder = Class.extend({
 		init: function() {
 			var me = this;
+
+			frappe.call({
+				method: "chart_of_accounts_builder.utils.init_details",
+				args: {
+					company: frappe.utils.get_url_arg("company")
+				},
+				callback: function(r) {
+					me.accounts_meta = r.message.accounts_meta;
+					me.company_details = r.message.company || {};
+					me.domains = r.message.domains;
+				}
+			});
+
 			this.toolbar = [
 				{
 					label: __("Edit"),
@@ -47,13 +60,19 @@ frappe.ready(function() {
 				this.bind_node_toolbar();
 				this.add_root();
 				this.submit_charts();
+				this.delete_charts();
 			}
 
 			if ( cint(frappe.utils.get_url_arg("forked")) && cint(frappe.utils.get_url_arg("submitted")) ) {
 				this.download_chart();
 			}
 
+			if ( cint(frappe.utils.get_url_arg("submitted")) && frappe.session.user == frappe.utils.get_url_arg("owner")) {
+				this.edit_chart();
+			}
+
 			this.add_star();
+			this.email_comment();
 		},
 
 		bind_node_toolbar: function() {
@@ -107,15 +126,12 @@ frappe.ready(function() {
 						description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
 					{
 						fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-						options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax',
-							'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed',
-							'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset',
-							'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='account_type')[0].options,
 						default: node.attr("data-account-type"),
 						description: __("Optional. This setting will be used to filter in various transactions.")},
 					{
 						fieldtype:'Select', fieldname:'root_type', label:__('Root Type'),
-						options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n'),
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='root_type')[0].options,
 						default: node.attr("data-root-type")
 					},
 					{
@@ -150,6 +166,7 @@ frappe.ready(function() {
 				if(!v) return;
 				v.name = node.attr("data-name")
 				v.is_root = is_root
+				v.company = frappe.utils.get_url_arg("company");
 
 				return frappe.call({
 					args: v,
@@ -194,8 +211,9 @@ frappe.ready(function() {
 				if(!v) return;
 
 				return frappe.call({
-					method:"frappe.model.rename_doc.rename_doc",
+					method:"chart_of_accounts_builder.utils.rename_account",
 					args: {
+						company: frappe.utils.get_url_arg("company"),
 						doctype: "Account",
 						old: selected_account_id,
 						"new": v.new_account_name,
@@ -221,7 +239,8 @@ frappe.ready(function() {
 			return frappe.call({
 				method: 'chart_of_accounts_builder.utils.delete_account',
 				args: {
-					account: node.attr("data-name")
+					account: node.attr("data-name"),
+					company: frappe.utils.get_url_arg("company")
 				},
 				freeze: true,
 				callback: function(r, rt) {
@@ -240,19 +259,18 @@ frappe.ready(function() {
 						fieldtype:'Data', fieldname:'account_name', label:__('New Account Name'), reqd:true,
 						description: __("Name of new Account. Note: Please don't create accounts for Customers and Suppliers")},
 					{
+						fieldtype:'Data', fieldname:'account_number', label:__('Account Number'), reqd:false},
+					{
 						fieldtype:'Check', fieldname:'is_group', label:__('Is Group'),
 						description: __('Further accounts can be made under Groups, but entries can be made against non-Groups')},
 					{
 						fieldtype:'Select', fieldname:'account_type', label:__('Account Type'),
-						options: ['', 'Bank', 'Cash', 'Receivable', 'Payable', 'Stock', 'Tax',
-							'Chargeable', 'Cost of Goods Sold', 'Stock Received But Not Billed',
-							'Expenses Included In Valuation', 'Stock Adjustment', 'Fixed Asset',
-							'Depreciation', 'Accumulated Depreciation', 'Round Off', 'Temporary'].join('\n'),
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='account_type')[0].options,
 						description: __("Optional. This setting will be used to filter in various transactions.")},
 					{ fieldtype:'Data', fieldname:'tax_rate', label:__('Tax Rate') },
 					{
 						fieldtype:'Select', fieldname:'root_type', label:__('Root Type'),
-						options: ['Asset', 'Liability', 'Equity', 'Income', 'Expense'].join('\n')
+						options: this.accounts_meta.fields.filter(d => d.fieldname=='root_type')[0].options
 					},
 				]
 			})
@@ -285,7 +303,7 @@ frappe.ready(function() {
 
 				return frappe.call({
 					args: v,
-					method: 'erpnext.accounts.utils.add_ac',
+					method: 'chart_of_accounts_builder.utils.add_account',
 					freeze: true,
 					callback: function(r) {
 						d.hide();
@@ -325,20 +343,72 @@ frappe.ready(function() {
 
 		submit_charts: function() {
 			var company = frappe.utils.get_url_arg("company");
+			var me = this;
+
 			$(".submit-chart").on("click", function() {
-				return frappe.call({
-					method: 'chart_of_accounts_builder.utils.submit_chart',
-					args: {
-						company: company
-					},
-					freeze: true,
-					callback: function(r, rt) {
-						if(!r.exc) {
-							window.location.href = "/all_charts"
+				var d = new frappe.ui.Dialog({
+					title:__('Assign Name'),
+					fields: [
+						{
+							fieldtype:'Data', fieldname:'chart_of_accounts_name', label:__('Chart of Accounts Name'),
+							reqd:true, description: __("Assign a unique name to this Chart."),
+							default: me.company_details.chart_of_accounts_name || ""
+						},
+						{
+							fieldtype:'Select', fieldname:'domain', label:__('Domain'),
+							options: me.domains, default: me.company_details.domain || ""
 						}
-					}
-				})
+					]
+				});
+
+				d.set_primary_action(__("Submit"), function() {
+					return frappe.call({
+						method: 'chart_of_accounts_builder.utils.submit_chart',
+						args: {
+							company: company,
+							chart_of_accounts_name: d.get_value("chart_of_accounts_name"),
+							domain: d.get_value("domain")
+						},
+						freeze: true,
+						callback: function(r, rt) {
+							if(!r.exc) {
+								window.location.href = "/all_charts"
+							}
+						}
+					})
+				});
+
+				d.show();
 			})
+		},
+
+		delete_charts: function() {
+			var company = frappe.utils.get_url_arg("company");
+
+			$(".delete-chart").on("click", function() {
+				frappe.confirm(
+					__('Are you sure you want to delete this Chart of Accounts'),
+					function() { // called on-'yes' selection
+						return frappe.call({
+							method: "chart_of_accounts_builder.utils.delete_chart",
+							args: {
+								company: company
+							},
+							freeze: true,
+							callback: function(r, rt) {
+								if(!r.exc) {
+									window.location.href = "/all_charts";
+								}
+							},
+							onerror: function() {
+								frappe.msgprint(__("Wrong Password"));
+							}
+						});
+					},
+					function() { } // called on-'no' selection
+				)
+			});
+
 		},
 
 		add_star: function() {
@@ -359,6 +429,19 @@ frappe.ready(function() {
 			})
 		},
 
+		email_comment: function() {
+			$('#submit-comment').on('click', function() {
+				return frappe.call({
+					method: "chart_of_accounts_builder.utils.email_comment",
+					args: {
+						company: frappe.utils.get_url_arg("company"),
+						comment: $("[name='comment']").val()
+					},
+					callback: function() { }
+				})
+			});
+		},
+
 		download_chart: function() {
 			var company = frappe.utils.get_url_arg("company");
 			$(".download-chart").on("click", function() {
@@ -373,9 +456,35 @@ frappe.ready(function() {
 					}
 				})
 			});
+		},
+
+		edit_chart: function() {
+			var company = frappe.utils.get_url_arg("company");
+			$(".edit-chart").on("click", function() {
+				return frappe.call({
+					method: "chart_of_accounts_builder.utils.edit_chart",
+					args: {
+						chart: company
+					},
+					callback: function() {
+						window.location.href = updateQueryStringParameter(window.location.href, "submitted", 0);
+					}
+				})
+			});
 		}
 	}),
 
 	erpnext.coa = new erpnext.ChartBuilder();
 	erpnext.coa.bind_events();
 });
+
+var updateQueryStringParameter = function(uri, key, value) {
+	var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+	var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+	if (uri.match(re)) {
+		return uri.replace(re, '$1' + key + "=" + value + '$2');
+	}
+	else {
+		return uri + separator + key + "=" + value;
+	}
+}

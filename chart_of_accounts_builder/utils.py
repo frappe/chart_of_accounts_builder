@@ -4,6 +4,9 @@ import frappe, json, os, tarfile
 from frappe import _
 from frappe.utils import cint, random_string
 from frappe.model.naming import append_number_if_name_exists
+from frappe.model.rename_doc import rename_doc
+from erpnext.accounts.utils import add_ac
+from erpnext.setup.doctype.company.delete_company_transactions import delete_company_transactions
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts \
 	import get_charts_for_country, get_account_tree_from_existing_company
 
@@ -53,12 +56,30 @@ def update_account(args=None):
 		account.flags.ignore_mandatory = True
 
 	account.save()
+	disable_submitted(args.company)
 
 	frappe.local.flags.allow_unverified_charts = False
 
 @frappe.whitelist()
-def delete_account(account):
+def add_account(args=None):
+	if not args:
+		args = frappe.local.form_dict
+
+	account_name = add_ac(args)
+	if account_name:
+		disable_submitted(args.company)
+	return account_name
+
+@frappe.whitelist()
+def rename_account(company, **args):
+	args.pop("cmd")
+	rename_doc(**args)
+	disable_submitted(company)
+
+@frappe.whitelist()
+def delete_account(account, company):
 	frappe.delete_doc("Account", account, ignore_permissions=True)
+	disable_submitted(company)
 
 @frappe.whitelist()
 def fork(company):
@@ -94,14 +115,29 @@ def create_company(company_name, country, default_currency, chart_of_accounts, f
 	return company.name
 
 @frappe.whitelist()
-def submit_chart(company):
+def submit_chart(company, chart_of_accounts_name, domain=None):
 	validate_roots(company)
 	validate_account_types(company)
 	validate_accounts(company)
 
-	frappe.db.set_value("Company", company, "submitted", 1)
+	if frappe.db.get_value("Company", {"name": ["!=", company],
+		"chart_of_accounts_name": chart_of_accounts_name}, "chart_of_accounts_name"):
+		frappe.throw(_("Chart of Acconuts with this name already exist. Please select a different name."))
 
+	frappe.db.set_value("Company", company, "submitted", 1)
+	frappe.db.set_value("Company", company, "chart_of_accounts_name", chart_of_accounts_name)
+	if domain:
+		frappe.db.set_value("Company", company, "domain", domain)
+
+	frappe.cache().hset("init_details", frappe.session.user, {})
 	notify_frappe_team(company)
+
+@frappe.whitelist()
+def delete_chart(company):
+	# delete company and associated chart of accounts
+	delete_company_transactions(company)
+	frappe.delete_doc('Company', company)
+	frappe.cache().hset("init_details", frappe.session.user, {})
 
 def notify_frappe_team(company):
 	subject = "New Chart of Accounts {chart_name} submitted".format(chart_name=company)
@@ -112,6 +148,15 @@ def notify_frappe_team(company):
 	""".format(chart_name=company,
 		country=frappe.db.get_value("Company", company, "country"),
 		user=frappe.session.user)
+
+	frappe.sendmail(recipients="developers@erpnext.com", subject=subject, message=message)
+
+@frappe.whitelist()
+def email_comment(company, comment):
+	subject = _("New comment on Charts - {0}").format(company)
+	message = _("{0} <small>by {1}</small>").format(comment, frappe.session.user)
+	message += "<p><a href='chart?company={0}' style='font-size: 80%'>{1}</a></p>"\
+		.format(company, _("View it in your browser"))
 
 	frappe.sendmail(recipients="developers@erpnext.com", subject=subject, message=message)
 
@@ -212,6 +257,15 @@ def export_submitted_coa(country=None, chart=None):
 
 	make_tarfile(path, chart)
 
+@frappe.whitelist()
+def edit_chart(chart):
+	frappe.cache().hset("edit_chart", frappe.session.user, True)
+
+def disable_submitted(company):
+	if frappe.cache().hget("edit_chart", frappe.session.user):
+		frappe.db.set_value("Company", company, "submitted", 0)
+		frappe.cache().hset("edit_chart", frappe.session.user, False)
+
 def write_chart_to_file(account_tree, company, path):
 	"""
 		Write chart to json file and make tar file for all charts
@@ -240,3 +294,21 @@ def make_tarfile(path, fname=None):
 
 	with tarfile.open(target_path, "w:gz", encoding="utf-8") as tar:
 		tar.add(source_path, arcname=os.path.basename(source_path))
+
+@frappe.whitelist()
+def init_details(company):
+	out = frappe.cache().hget("init_details", frappe.session.user)
+
+	if not out:
+		company_details = frappe.db.get_all("Company", {"name": company}, ["chart_of_accounts_name,\
+			name, submitted, forked, included_in_erpnext, domain"])[0]
+		domains = [d.name for d in frappe.db.get_all("Domain")]
+
+		out = {
+			"accounts_meta": frappe.get_meta('Account'),
+			"company": company_details or {},
+			"domains": domains
+		}
+		frappe.cache().hset("init_details", frappe.session.user, out)
+
+	return out

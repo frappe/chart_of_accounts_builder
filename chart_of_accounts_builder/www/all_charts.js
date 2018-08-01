@@ -9,6 +9,27 @@ frappe.ready(function() {
 	frappe.require("/assets/js/control.min.js");
 	
 	erpnext.all_charts.make_new_chart();
+
+	let toggle_view = function() {
+		if($('[data-fieldname="show_all_charts"]')[0].checked) {
+			$(".tab2").hide();
+			$(".tab1").show();
+		} else {
+			$(".tab2").show();
+			$(".tab1").hide();
+		}
+	}
+
+	// hide all charts by default
+	if(frappe.session.user!="Guest") {
+		toggle_view();
+	}
+
+	// toggle all charts
+	$('.show_all_charts').change(function() {
+		toggle_view();
+	});
+
 });
 
 
