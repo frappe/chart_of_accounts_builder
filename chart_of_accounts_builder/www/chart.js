@@ -357,7 +357,7 @@ frappe.ready(function() {
 					fields: [
 						{
 							fieldtype:'Data', fieldname:'chart_of_accounts_name', label:__('Chart of Accounts Name'),
-							reqd:true, description: __("Assign a unique name to this Chart."),
+							reqd:true, description: __("Assign a unique self-descriptive name to the Chart"),
 							default: me.company_details.chart_of_accounts_name || ""
 						},
 						{
