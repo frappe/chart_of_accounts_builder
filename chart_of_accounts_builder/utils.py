@@ -247,13 +247,14 @@ def export_submitted_coa(country=None, chart=None):
 	if chart:
 		filters.update({"name": chart})
 
-	company_for_submitted_charts = frappe.get_all("Company", filters, ["name", "country"])
+	company_for_submitted_charts = frappe.get_all("Company", filters,
+		["name", "country", "chart_of_accounts_name"])
 
 	for company in company_for_submitted_charts:
 		account_tree = get_account_tree_from_existing_company(company.name)
 		write_chart_to_file(account_tree, company, path)
 
-	make_tarfile(path, chart)
+	make_tarfile(path, company_for_submitted_charts[0].chart_of_accounts_name or chart)
 
 @frappe.whitelist()
 def edit_chart(chart):
@@ -275,9 +276,9 @@ def write_chart_to_file(account_tree, company, path):
 	chart["country_code"] = frappe.db.get_value("Country", company.country, "code")
 	chart["tree"] = account_tree
 
-	fpath = os.path.join(path, company.name + ".json")
+	fpath = os.path.join(path, (company.chart_of_accounts_name or company.name) + ".json")
 	if not os.path.exists(fpath):
-		with open(os.path.join(path, company.name + ".json"), "w") as f:
+		with open(os.path.join(path, (company.chart_of_accounts_name or company.name) + ".json"), "w") as f:
 			f.write(json.dumps(chart, indent=4, sort_keys=True))
 
 def make_tarfile(path, fname=None):
@@ -299,7 +300,7 @@ def make_tarfile(path, fname=None):
 def init_details(company):
 	out = frappe.cache().hget("init_details", frappe.session.user)
 
-	if not out:
+	if not out or company!=out['company']['name']:
 		company_details = frappe.db.get_all("Company", {"name": company}, ["chart_of_accounts_name,\
 			name, submitted, forked, included_in_erpnext, domain"])[0]
 		domains = [d.name for d in frappe.db.get_all("Domain")]
