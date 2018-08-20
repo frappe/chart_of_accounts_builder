@@ -20,6 +20,10 @@ frappe.ready(function() {
 					me.accounts_meta = r.message.accounts_meta;
 					me.company_details = r.message.company || {};
 					me.domains = r.message.domains;
+
+					if(me.company_details.chart_of_accounts_name) {
+						$('.chart-title').text(me.company_details.chart_of_accounts_name);
+					}
 				}
 			});
 

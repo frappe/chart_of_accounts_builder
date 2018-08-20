@@ -21,7 +21,7 @@
 							<span class="star-count">{{ chart.stars }}</span>
 						</div>
 						<div>
-							<h4 class="chart-name">{{ chart.name }}</h4>
+							<h4 class="chart-name">{{ chart.chart_of_accounts_name or chart.name }}</h4>
 							{% if show_user and chart.submitted_by != "Administrator" %}
 								<div class="small text-muted chart-list-item-desc">
 										Submitted by {{ chart.submitted_by }}

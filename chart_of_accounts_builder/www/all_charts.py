@@ -25,7 +25,7 @@ def get_context(context):
 	})
 
 	contributed_charts = frappe.get_all("Company", filters=filters,
-		fields=["name", "country", "forked", "submitted", "stars", "owner"])
+		fields=["name", "country", "forked", "submitted", "stars", "owner", "chart_of_accounts"])
 
 	all_charts = contributed_charts + sample_charts
 
@@ -37,7 +37,7 @@ def get_context(context):
 		
 	# User's chart
 	context.my_charts = frappe.get_all("Company", filters={"owner": frappe.session.user},
-		fields=["name", "country", "forked", "submitted", "stars", "owner"],
+		fields=["name", "country", "forked", "submitted", "stars", "owner", "chart_of_accounts_name"],
 		order_by = 'name')
 	
 	context.no_cache = True
