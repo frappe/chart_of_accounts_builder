@@ -20,6 +20,10 @@ frappe.ready(function() {
 					me.accounts_meta = r.message.accounts_meta;
 					me.company_details = r.message.company || {};
 					me.domains = r.message.domains;
+
+					if(me.company_details.chart_of_accounts_name) {
+						$('.chart-title').text(me.company_details.chart_of_accounts_name);
+					}
 				}
 			});
 
@@ -450,6 +454,7 @@ frappe.ready(function() {
 
 		download_chart: function() {
 			var company = frappe.utils.get_url_arg("company");
+			var me = this;
 			$(".download-chart").on("click", function() {
 				return frappe.call({
 					method: "chart_of_accounts_builder.utils.export_submitted_coa",
@@ -457,7 +462,7 @@ frappe.ready(function() {
 						chart: company
 					},
 					callback: function() {
-						var file_url = "/files/submitted_charts/" + company + ".tar.gz"
+						var file_url = "/files/submitted_charts/" + (me.company_details.chart_of_accounts_name || company) + ".tar.gz"
 						window.open(file_url);
 					}
 				})
