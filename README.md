@@ -1,6 +1,6 @@
 ## Chart Of Accounts Builder
 
-The Cart Of Accounts Builder is a web application similar to https://translate.erpnext.com/
+The Chart Of Accounts Builder is a web application similar to https://translate.erpnext.com/
 It should enable users to contribute Charts of Accounts for ERPNext
 
 ### Setup 
