@@ -1,0 +1,11 @@
+[
+    {
+        "docstatus": 0,
+        "doctype": "Client Script",
+        "dt": "Company",
+        "modified": "2018-07-25 21:29:48.030036",
+        "name": "Company-Client",
+        "script": "frappe.ui.form.on(\"Company\", {\n\tsetup: function(frm) {\n\t\tif(frappe.user_roles.includes('System Manager')) {\n\t\t\tfrm.set_df_property('included_in_erpnext', 'hidden', 0);\n\t\t}\n\t}\n});",
+        "script_type": "Client"
+    }
+]
